@@ -19,6 +19,7 @@ export const initialNamespaces = [
   'layout',
   'navigation',
   'platform',
+  'model-provider',
 ] as const
 
 export function getSavedLocale(): Locale {

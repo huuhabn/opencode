@@ -28,6 +28,7 @@ export function DirectionProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const next = directionForLocale(getSavedLocale())
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     _setDir(next)
     setCookie(DIRECTION_COOKIE_NAME, next, DIRECTION_COOKIE_MAX_AGE)
   }, [])

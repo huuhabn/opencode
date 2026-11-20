@@ -57,7 +57,7 @@ export function SecuritySettings() {
   }
 
   return (
-    <div className='space-y-6 w-full'>
+    <div className='min-h-0 w-full flex-1 overflow-y-auto scroll-smooth pe-4 pb-12 space-y-6'>
       <div>
         <h2 className='text-lg font-semibold tracking-tight'>Security & Active Sessions</h2>
         <p className='text-sm text-muted-foreground'>

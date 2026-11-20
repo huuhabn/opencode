@@ -99,7 +99,7 @@ export function WebhooksSettings() {
   }
 
   return (
-    <div className='space-y-6 w-full'>
+    <div className='min-h-0 w-full flex-1 overflow-y-auto scroll-smooth pe-4 pb-12 space-y-6'>
       <div className='flex items-center justify-between'>
         <div>
           <h2 className='text-lg font-semibold tracking-tight'>Webhook Subscriptions</h2>
