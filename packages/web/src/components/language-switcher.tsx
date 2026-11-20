@@ -1,4 +1,4 @@
-import { setLocale } from '@/i18n'
+import { setLocale } from '@/i18n/index'
 import { languages } from '@/i18n/languages'
 import { Languages } from 'lucide-react'
 import { useTranslation } from 'react-i18next'

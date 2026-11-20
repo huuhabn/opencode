@@ -1,6 +1,6 @@
 import { useState, type SVGProps } from 'react'
 import { Root as Radio, Item } from '@radix-ui/react-radio-group'
-import { setLocale } from '@/i18n'
+import { setLocale } from '@/i18n/index'
 import { languages } from '@/i18n/languages'
 import { Check, ChevronsUpDown, CircleCheck, RotateCcw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'

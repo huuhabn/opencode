@@ -4,7 +4,7 @@ import i18n, {
   DIRECTION_COOKIE_NAME,
   directionForLocale,
   getSavedLocale,
-} from '@/i18n'
+} from '@/i18n/index'
 import { setCookie, removeCookie } from '@/lib/cookies'
 
 export type Direction = 'ltr' | 'rtl'
