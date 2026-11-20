@@ -11,7 +11,7 @@ export function Main({ fixed, className, fluid, ...props }: MainProps) {
     <main
       data-layout={fixed ? 'fixed' : 'auto'}
       className={cn(
-        'flex min-h-0 flex-1 flex-col px-4 py-6',
+        'flex min-h-0 flex-1 flex-col p-4 sm:px-4',
 
         // Fixed pages scroll inside nested panes. Other pages scroll here.
         fixed ? 'overflow-hidden' : 'overflow-y-auto',

@@ -11,6 +11,7 @@
 @import './themes/zen.css';
 @import './themes/astro-vista.css';
 @import './themes/whatsapp.css';
+@import './themes/violet-bloom.css';
 
 @theme inline {
   --font-inter: 'Inter', 'sans-serif';

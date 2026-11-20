@@ -10,6 +10,10 @@ export const THEMES = [
     value: 'default',
   },
   {
+    name: 'Violet Bloom',
+    value: 'violet-bloom',
+  },
+  {
     name: 'Claude',
     value: 'claude',
   },

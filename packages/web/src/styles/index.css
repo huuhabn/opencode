@@ -53,6 +53,13 @@
   scrollbar-width: none; /* Firefox */
 }
 
+@utility faded-top {
+  @apply before:pointer-events-none before:absolute before:inset-s-0 before:top-0
+         before:z-10 before:hidden before:h-32 before:w-full before:rounded-t-2xl
+         before:bg-[linear-gradient(0deg,transparent_10%,var(--background)_70%)]
+         md:before:block;
+}
+
 @utility faded-bottom {
   @apply after:pointer-events-none after:absolute after:inset-s-0 after:bottom-0 after:hidden after:h-32 after:w-full after:rounded-b-2xl after:bg-[linear-gradient(180deg,transparent_10%,var(--background)_70%)] md:after:block;
 }
