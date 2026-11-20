@@ -1,0 +1,14 @@
+/* Runtime font variables used by theme CSS (var(--font-*)).
+   Families are loaded from the Google Fonts stylesheet in index.html. */
+:root {
+  --font-inter: 'Inter', sans-serif;
+  --font-manrope: 'Manrope', sans-serif;
+  --font-outfit: 'Outfit', sans-serif;
+  --font-merriweather: 'Merriweather', serif;
+  --font-fira-code: 'Fira Code', monospace;
+  --font-jetbrains-mono: 'JetBrains Mono', monospace;
+  --font-playfair-display: 'Playfair Display', serif;
+  --font-source-code-pro: 'Source Code Pro', monospace;
+  --font-google-sans-flex: 'Google Sans Flex', ui-sans-serif, sans-serif;
+  --font-architects-daughter: 'Architects Daughter', sans-serif;
+}
