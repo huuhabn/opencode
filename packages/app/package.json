@@ -56,7 +56,7 @@
   },
   "dependencies": {
     "@corvu/drawer": "catalog:",
-    "@dnd-kit/abstract": "0.5.0",
+    "@dnd-kit/abstract": "0.5.3",
     "@dnd-kit/dom": "0.5.0",
     "@dnd-kit/solid": "0.5.0",
     "@ibm/plex": "6.4.1",
