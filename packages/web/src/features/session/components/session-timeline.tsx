@@ -1,17 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import {
-  Bot,
-  Terminal,
-  Code2,
-  Sparkles,
-  Square,
-  ArrowDown,
-  BrainCircuit,
-  Loader2,
-} from 'lucide-react'
+import { Bot, Terminal, Code2, Loader2, Square, ArrowDown } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { TimelineMessage } from './timeline-message'
+import { latestTurnAssistant, shouldShowWorkingStatus } from '../lib/session-busy'
 import type { SessionMessageInfo } from '../api'
 
 interface SessionTimelineProps {
@@ -35,31 +27,22 @@ export function SessionTimeline({
   const containerRef = useRef<HTMLDivElement>(null)
   const endRef = useRef<HTMLDivElement>(null)
   const [isNearBottom, setIsNearBottom] = useState(true)
-
-  // Track elapsed thinking time
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
 
   useEffect(() => {
-    let timer: ReturnType<typeof setInterval> | null = null
-    if (isStreaming) {
+    if (!isStreaming) {
       setElapsedSeconds(0)
-      timer = setInterval(() => {
-        setElapsedSeconds((prev) => prev + 1)
-      }, 1000)
-    } else {
-      setElapsedSeconds(0)
+      return
     }
-    return () => {
-      if (timer) clearInterval(timer)
-    }
+    setElapsedSeconds(0)
+    const timer = setInterval(() => setElapsedSeconds((prev) => prev + 1), 1000)
+    return () => clearInterval(timer)
   }, [isStreaming])
 
-  // Smart auto-scroll: only scroll down if user is near bottom
   const handleScroll = () => {
     if (!containerRef.current) return
     const { scrollTop, scrollHeight, clientHeight } = containerRef.current
-    const atBottom = scrollHeight - scrollTop - clientHeight < 120
-    setIsNearBottom(atBottom)
+    setIsNearBottom(scrollHeight - scrollTop - clientHeight < 120)
   }
 
   const scrollToBottom = () => {
@@ -68,9 +51,7 @@ export function SessionTimeline({
   }
 
   useEffect(() => {
-    if (isNearBottom) {
-      endRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }
+    if (isNearBottom) endRef.current?.scrollIntoView({ behavior: 'auto' })
   }, [messages, isStreaming, isNearBottom])
 
   if (isLoading) {
@@ -81,7 +62,6 @@ export function SessionTimeline({
             key={i}
             className={`flex gap-3 max-w-xl ${i % 2 === 0 ? 'ml-auto justify-end' : ''}`}
           >
-            <div className='h-7 w-7 rounded-lg bg-muted/60 animate-pulse shrink-0' />
             <div className='h-16 w-72 rounded-2xl bg-muted/40 animate-pulse' />
           </div>
         ))}
@@ -142,14 +122,10 @@ export function SessionTimeline({
     )
   }
 
-  // Determine if the assistant has already started outputting visible content
-  const lastNonSystemMsg = messages.findLast(
-    (m) => m.type === 'user' || m.type === 'assistant'
-  )
-  const assistantHasContent =
-    lastNonSystemMsg?.type === 'assistant' &&
-    Array.isArray((lastNonSystemMsg as { content?: unknown[] }).content) &&
-    ((lastNonSystemMsg as { content?: unknown[] }).content?.length ?? 0) > 0
+  // Same role as packages/app StatusLane / showWorking: only while busy and this turn has no visible parts yet.
+  // Once reasoning/text/tools appear, that UI replaces this row — never keep "Thinking…" above the reply.
+  const showWorking = shouldShowWorkingStatus(Boolean(isStreaming), messages)
+  const liveAssistant = isStreaming ? latestTurnAssistant(messages) : undefined
 
   return (
     <div
@@ -157,69 +133,63 @@ export function SessionTimeline({
       onScroll={handleScroll}
       className='flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-4 space-y-3.5 select-text relative'
     >
-      {messages.map((message, idx) => (
-        <TimelineMessage
-          key={(message as { id?: string }).id || idx}
-          message={message}
-          onRetry={onRetry}
-        />
-      ))}
+      {messages.map((message, idx) => {
+        const retryText =
+          message.type === 'assistant'
+            ? (
+                messages
+                  .slice(0, idx)
+                  .findLast((m) => m.type === 'user') as { text?: string } | undefined
+              )?.text
+            : undefined
+        const isLive =
+          message.type === 'assistant' &&
+          liveAssistant !== undefined &&
+          (message as { id?: string }).id === liveAssistant.id
+        return (
+          <TimelineMessage
+            key={(message as { id?: string }).id || idx}
+            message={message}
+            isLive={isLive}
+            retryText={retryText}
+            onRetry={onRetry}
+          />
+        )
+      })}
 
-      {/* Live Thinking Effect while waiting for response */}
-      {isStreaming && !assistantHasContent && (
-        <div className='flex items-start gap-3 max-w-3xl mr-auto group py-2 animate-in fade-in-50 duration-300'>
-          {/* Glowing Animated Avatar */}
-          <div className='relative flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 via-primary to-rose-500 text-white shadow-sm ring-2 ring-primary/30 shrink-0 mt-0.5 animate-pulse'>
-            <BrainCircuit className='h-4 w-4' />
-          </div>
-
-          <div className='flex flex-col gap-2 max-w-[92%] flex-1 min-w-0'>
-            <div className='flex items-center gap-2'>
-              <span className='font-semibold text-xs text-foreground'>
-                OpenCode Agent
-              </span>
-              <div className='flex items-center gap-1 text-[11px] text-muted-foreground/80 bg-muted/60 px-2 py-0.5 rounded-full'>
-                <Loader2 className='h-3 w-3 animate-spin text-primary' />
-                <span>{elapsedSeconds}s</span>
-              </div>
-              {onInterrupt && (
-                <Button
-                  variant='ghost'
-                  size='sm'
-                  onClick={onInterrupt}
-                  className='h-5 px-2 text-[10px] text-destructive hover:bg-destructive/10 ml-auto gap-1'
-                >
-                  <Square className='h-2.5 w-2.5 fill-current' />
-                  <span>{t('session.stop', 'Stop')}</span>
-                </Button>
-              )}
-            </div>
-
-            {/* Thinking Visual Card */}
-            <div className='rounded-2xl rounded-tl-sm bg-muted/30 border border-primary/20 p-3.5 shadow-2xs space-y-2.5'>
-              <div className='flex items-center gap-2 text-xs font-medium text-foreground'>
-                <Sparkles className='h-3.5 w-3.5 text-primary animate-spin' />
-                <span>{t('session.thinkingStatus', 'Agent is reasoning & searching codebase...')}</span>
-              </div>
-
-              {/* Shimmering thinking progress bars */}
-              <div className='space-y-1.5 pt-1'>
-                <div className='h-2 w-3/4 rounded-full bg-gradient-to-r from-muted-foreground/20 via-primary/30 to-muted-foreground/20 animate-pulse' />
-                <div className='h-2 w-1/2 rounded-full bg-gradient-to-r from-muted-foreground/15 via-primary/20 to-muted-foreground/15 animate-pulse delay-150' />
-              </div>
-            </div>
-          </div>
+      {showWorking && (
+        <div
+          data-component='session-working'
+          role='status'
+          className='flex h-9 items-center gap-2 max-w-3xl text-[13px] text-muted-foreground animate-in fade-in slide-in-from-bottom-1 duration-200'
+        >
+          <Loader2 className='h-3.5 w-3.5 animate-spin text-primary shrink-0' />
+          <span className='font-medium'>{t('session.timeline.working', 'Working')}</span>
+          <span className='font-mono text-[11px] text-muted-foreground/70 tabular-nums'>
+            {elapsedSeconds}s
+          </span>
+          {onInterrupt && (
+            <Button
+              type='button'
+              variant='ghost'
+              size='sm'
+              onClick={onInterrupt}
+              className='h-6 px-2 text-[11px] text-muted-foreground hover:text-destructive ml-auto gap-1'
+            >
+              <Square className='h-2.5 w-2.5 fill-current' />
+              <span>{t('session.stop', 'Stop')}</span>
+            </Button>
+          )}
         </div>
       )}
 
-      {/* Floating Scroll to Bottom Button (Icon only) */}
       {!isNearBottom && (
         <div className='sticky bottom-3 flex justify-center z-20 pointer-events-none'>
           <Button
             size='icon'
             variant='secondary'
             onClick={scrollToBottom}
-            className='pointer-events-auto h-8 w-8 rounded-full shadow-md border border-border/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-transform hover:scale-105 active:scale-95'
+            className='pointer-events-auto h-8 w-8 rounded-full shadow-md border border-border/60'
             title={t('session.scrollToBottom', 'Scroll to bottom')}
           >
             <ArrowDown className='h-4 w-4' />

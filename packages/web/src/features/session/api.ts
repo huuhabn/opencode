@@ -57,7 +57,9 @@ export function useSessionDetails(sessionID?: string) {
   })
 }
 
-export function useSessionMessages(sessionID?: string, isLive?: boolean) {
+export function useSessionMessages(sessionID?: string, options?: { live?: boolean; fast?: boolean }) {
+  const live = options?.live ?? false
+  const fast = options?.fast ?? false
   return useQuery({
     queryKey: sessionQueryKeys.messages(sessionID ?? ''),
     queryFn: async () => {
@@ -72,7 +74,8 @@ export function useSessionMessages(sessionID?: string, isLive?: boolean) {
       })
     },
     enabled: !!sessionID,
-    refetchInterval: isLive ? 800 : 2500,
+    // Fast while a turn is running; calm when idle. Avoid always-on 800ms polling.
+    refetchInterval: live ? (fast ? 400 : 2000) : false,
   })
 }
 

@@ -154,7 +154,6 @@ export function SessionSidebar({ currentSessionId, onCollapse }: SessionSidebarP
               <div className='flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-tr from-amber-500 via-rose-500 to-indigo-500 text-white shadow-xs'>
                 <Bot className='h-3.5 w-3.5' />
               </div>
-              <span className='font-bold text-sm tracking-tight text-foreground'>Lobe AI</span>
               <ChevronsUpDown className='h-3 w-3 text-muted-foreground' />
             </button>
           </DropdownMenuTrigger>

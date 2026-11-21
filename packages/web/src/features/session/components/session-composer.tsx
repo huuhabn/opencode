@@ -725,7 +725,6 @@ export function SessionComposer({
                   className='flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded-md hover:bg-muted/60 transition-colors font-medium border border-border/40'
                   title='Choose Agent'
                 >
-                  <Bot className='h-3 w-3 text-primary shrink-0' />
                   <span className='capitalize font-semibold'>{currentAgent.name}</span>
                   <ChevronDown className='h-2.5 w-2.5 text-muted-foreground' />
                 </button>
@@ -741,7 +740,7 @@ export function SessionComposer({
                     className={ag.id === selectedAgentId ? 'bg-muted font-medium' : ''}
                   >
                     <div className='flex flex-col'>
-                      <span className='font-semibold'>{ag.name}</span>
+                      <span className='text-[12px] font-semibold'>{ag.name}</span>
                       {ag.description && (
                         <span className='text-[10px] text-muted-foreground line-clamp-1'>
                           {ag.description}
@@ -762,9 +761,6 @@ export function SessionComposer({
                   className='flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded-md hover:bg-muted/60 transition-colors border border-border/40'
                   title='Choose Model'
                 >
-                  <span className='font-normal text-muted-foreground/70 hidden sm:inline'>
-                    {currentModel?.providerID || 'google'} /
-                  </span>
                   <span className='font-medium text-foreground truncate max-w-[120px] sm:max-w-[150px]'>
                     {currentModel?.name || currentModel?.id || 'Gemini 3.8 Flash'}
                   </span>
@@ -841,7 +837,6 @@ export function SessionComposer({
                     className='flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-1.5 py-1 rounded-md hover:bg-muted/60 transition-colors capitalize'
                     title='Reasoning Variant'
                   >
-                    <Sparkles className='h-3 w-3 text-amber-500 shrink-0' />
                     <span>{selectedVariant}</span>
                     <ChevronDown className='h-2.5 w-2.5 text-muted-foreground' />
                   </button>
@@ -879,13 +874,14 @@ export function SessionComposer({
               {isSpeaking ? <VolumeX className='h-4 w-4' /> : <Volume2 className='h-4 w-4' />}
             </Button>
 
-            {/* 5. Submit / Stop Button (Upright ArrowUp icon) */}
+            {/* 5. Submit / Stop — stop stays outline while thinking so status changes are obvious */}
             {isStreaming ? (
               <Button
                 type='button'
                 size='icon'
                 onClick={onInterrupt}
-                className='h-7 w-7 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 flex items-center justify-center shadow-xs'
+                variant='outline'
+                className='h-7 w-7 rounded-full border-border text-foreground hover:bg-muted flex items-center justify-center shadow-xs'
                 title={t('session.stopPrompt', 'Stop agent (Esc)')}
               >
                 <Square className='h-3 w-3 fill-current' />

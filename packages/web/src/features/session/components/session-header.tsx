@@ -1,10 +1,6 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   MoreHorizontal,
-  Share2,
-  LayoutGrid,
-  PanelRightClose,
-  PanelRightOpen,
   PanelLeftClose,
   PanelLeftOpen,
   Edit2,
@@ -32,6 +28,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { useModels } from '@/features/settings/models/api'
 import { useUpdateSession, useForkSession, type SessionInfo } from '../api'
 
 interface SessionHeaderProps {
@@ -55,15 +52,44 @@ export function SessionHeader({
   onRefresh,
   onDelete,
 }: SessionHeaderProps) {
-  const { t } = useTranslation(['model-provider', 'common'])
+  const { t, i18n } = useTranslation(['model-provider', 'common'])
   const navigate = useNavigate()
   const [isRenameOpen, setIsRenameOpen] = useState(false)
   const [newTitle, setNewTitle] = useState('')
 
   const updateSessionMutation = useUpdateSession()
   const forkSessionMutation = useForkSession()
+  const { data: models = [] } = useModels()
 
   const title = session?.title || t('session.untitled', 'New Conversation')
+
+  // Same usage summary as packages/gui-plugins SessionContextUsage: tokens + % of context + cost.
+  const contextUsage = useMemo(() => {
+    const tokens = session?.tokens
+    const total =
+      (tokens?.input ?? 0) +
+      (tokens?.output ?? 0) +
+      (tokens?.reasoning ?? 0) +
+      (tokens?.cache?.read ?? 0) +
+      (tokens?.cache?.write ?? 0)
+    const modelId =
+      session?.model && typeof session.model !== 'string' ? session.model.id : undefined
+    const model = modelId ? models.find((m) => m.id === modelId) : undefined
+    const limit = model?.limit?.context ?? 128_000
+    const usage = limit > 0 ? Math.min(Math.round((total / limit) * 100), 100) : 0
+    const tokensLabel = new Intl.NumberFormat(i18n.language, {
+      notation: 'compact',
+      maximumFractionDigits: 0,
+    })
+      .format(total)
+      .toLocaleLowerCase(i18n.language)
+    const cost = session?.cost ?? 0
+    const costLabel = new Intl.NumberFormat(i18n.language, {
+      style: 'currency',
+      currency: 'USD',
+    }).format(cost)
+    return { total, usage, tokensLabel, cost, costLabel, showCost: cost > 0 }
+  }, [session?.tokens, session?.model, session?.cost, models, i18n.language])
 
   const handleShare = async () => {
     try {
@@ -185,41 +211,30 @@ export function SessionHeader({
           )}
         </div>
 
-        {/* Right Actions: Share, Grid/Split, Inspector toggle */}
+        {/* Right: Toggle session context — same flow as gui-plugins SessionContextUsage */}
         <div className='flex items-center gap-1 shrink-0'>
-          <Button
-            variant='ghost'
-            size='icon'
-            onClick={handleShare}
-            className='h-8 w-8 text-muted-foreground hover:text-foreground'
-            title={t('session.share', 'Share')}
-          >
-            <Share2 className='h-4 w-4' />
-          </Button>
-
-          <Button
-            variant='ghost'
-            size='icon'
-            onClick={() => toast.info('Grid layout mode')}
-            className='h-8 w-8 text-muted-foreground hover:text-foreground'
-            title='Grid view'
-          >
-            <LayoutGrid className='h-4 w-4' />
-          </Button>
-
-          {onToggleInspector && (
+          {session && onToggleInspector && (
             <Button
+              type='button'
               variant='ghost'
-              size='icon'
               onClick={onToggleInspector}
-              className='h-8 w-8 text-muted-foreground hover:text-foreground'
-              title={isInspectorOpen ? 'Collapse inspector' : 'Open inspector'}
+              aria-expanded={isInspectorOpen}
+              aria-label={t('session.toggleContext', 'Toggle session context')}
+              title={t('session.toggleContext', 'Toggle session context')}
+              className='h-8 shrink-0 gap-2 px-1.5 text-muted-foreground hover:text-foreground'
             >
-              {isInspectorOpen ? (
-                <PanelRightClose className='h-4 w-4' />
-              ) : (
-                <PanelRightOpen className='h-4 w-4' />
-              )}
+              <span className='flex items-center gap-2 whitespace-nowrap'>
+                <ContextUsageRing percentage={contextUsage.usage} />
+                <span className='text-xs tabular-nums'>{contextUsage.tokensLabel}</span>
+                {contextUsage.showCost && (
+                  <>
+                    <span aria-hidden='true' className='flex w-1.5 shrink-0 items-center justify-center'>
+                      ·
+                    </span>
+                    <span className='text-xs tabular-nums'>{contextUsage.costLabel}</span>
+                  </>
+                )}
+              </span>
             </Button>
           )}
         </div>
@@ -254,5 +269,44 @@ export function SessionHeader({
         </DialogContent>
       </Dialog>
     </>
+  )
+}
+
+function ContextUsageRing({ percentage }: { percentage: number }) {
+  const size = 16
+  const stroke = 2
+  const radius = (size - stroke) / 2
+  const circumference = 2 * Math.PI * radius
+  const offset = circumference - (Math.min(Math.max(percentage, 0), 100) / 100) * circumference
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      className='shrink-0 -rotate-90'
+      aria-hidden='true'
+    >
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill='none'
+        stroke='currentColor'
+        strokeWidth={stroke}
+        className='opacity-20'
+      />
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill='none'
+        stroke='currentColor'
+        strokeWidth={stroke}
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        strokeLinecap='round'
+      />
+    </svg>
   )
 }
