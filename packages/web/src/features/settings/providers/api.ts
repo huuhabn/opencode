@@ -13,7 +13,11 @@ export function useIntegrations() {
     queryKey: providerQueryKeys.integrations,
     queryFn: async () => {
       const res = await agentPlatformClient.integration.list()
-      return res.data
+      if (Array.isArray(res)) return res
+      if (res && typeof res === 'object' && Array.isArray((res as any).data)) {
+        return (res as any).data
+      }
+      return []
     },
     retry: 1,
     staleTime: 1000 * 15,
@@ -25,7 +29,11 @@ export function useCredentials() {
     queryKey: providerQueryKeys.credentials,
     queryFn: async () => {
       const res = await agentPlatformClient.credential.list()
-      return res
+      if (Array.isArray(res)) return res
+      if (res && typeof res === 'object' && Array.isArray((res as any).data)) {
+        return (res as any).data
+      }
+      return []
     },
     retry: 1,
     staleTime: 1000 * 15,

@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
-import { Sparkles, Search, RefreshCw, AlertCircle, Filter, Server } from 'lucide-react'
+import { Sparkles, Search, RefreshCw, AlertCircle, Filter, Server, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import type { ModelInfo } from '@opencode/client'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -22,6 +23,7 @@ export function ModelsSettings() {
   const [search, setSearch] = useState('')
   const [selectedProvider, setSelectedProvider] = useState<string>('all')
   const [serverConfigOpen, setServerConfigOpen] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   const {
     data: modelsData,
@@ -33,6 +35,18 @@ export function ModelsSettings() {
   const { data: defaultModelData } = useDefaultModel()
 
   const serverConfig = getServerConfig()
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    try {
+      await refetch()
+      toast.success(t('modelProvider.modelsRefreshedSuccess', 'Models refreshed successfully'))
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to refresh models')
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
   const isAuthError =
     modelsError instanceof Error &&
     modelsError.message.toLowerCase().includes('authentication')
@@ -104,11 +118,11 @@ export function ModelsSettings() {
             variant='outline'
             size='sm'
             className='gap-2 text-xs'
-            onClick={() => refetch()}
-            disabled={isLoading}
+            onClick={handleRefresh}
+            disabled={isRefreshing || isLoading}
           >
             <RefreshCw
-              className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`}
+              className={`h-3.5 w-3.5 ${isRefreshing || isLoading ? 'animate-spin' : ''}`}
             />
             {t('modelProvider.refresh', 'Refresh')}
           </Button>
@@ -122,14 +136,14 @@ export function ModelsSettings() {
           <AlertTitle>
             {t(
               'modelProvider.serverAuthError',
-              'OpenCode Server requires authentication password'
+              'Server requires authentication password'
             )}
           </AlertTitle>
           <AlertDescription className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-xs mt-1'>
             <span>
               {t('modelProvider.serverAuthErrorDesc')}{' '}
               <code className='rounded bg-destructive/20 px-1 py-0.5 font-mono text-[11px]'>
-                opencode service get password
+                bun run dev service get password
               </code>
             </span>
             <Button
@@ -171,16 +185,37 @@ export function ModelsSettings() {
       {/* Filters Bar */}
       <div className='flex flex-col gap-3 sm:flex-row sm:items-center'>
         <div className='relative flex-1 max-w-sm'>
-          <Search className='absolute inset-y-0 start-3 my-auto h-4 w-4 text-muted-foreground' />
+          <Search className='pointer-events-none absolute inset-y-0 start-3 my-auto h-4 w-4 text-muted-foreground' />
           <Input
+            type='search'
+            name='ai-model-search-query'
+            id='ai-model-search-query'
+            autoComplete='off'
+            autoCorrect='off'
+            autoCapitalize='off'
+            spellCheck={false}
+            data-1p-ignore
+            data-lpignore='true'
+            data-bwignore='true'
+            data-form-type='other'
             placeholder={t(
               'modelProvider.searchModelsPlaceholder',
               'Search models by name or ID...'
             )}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className='ps-9 h-9 text-xs'
+            className='ps-9 pe-8 h-9 text-xs'
           />
+          {search && (
+            <button
+              type='button'
+              onClick={() => setSearch('')}
+              className='absolute inset-y-0 end-2.5 my-auto flex h-4 w-4 items-center justify-center text-muted-foreground hover:text-foreground'
+              title='Clear search'
+            >
+              <X className='h-3.5 w-3.5' />
+            </button>
+          )}
         </div>
 
         <div className='flex items-center gap-2'>

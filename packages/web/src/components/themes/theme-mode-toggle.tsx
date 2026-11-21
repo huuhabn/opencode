@@ -27,6 +27,7 @@ export function ThemeModeToggle() {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (
+        !event?.key ||
         event.key.toLowerCase() !== 'd' ||
         !event.shiftKey ||
         !(event.metaKey || event.ctrlKey)

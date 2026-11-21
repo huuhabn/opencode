@@ -21,11 +21,22 @@ import {
   ArrowUpDown,
   AlertCircle,
   ShieldCheck,
+  Sparkles,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import {
   Dialog,
   DialogContent,
@@ -76,6 +87,7 @@ interface ManageKeysSheetProps {
   onOpenChange: (open: boolean) => void
   provider: ProviderItem
   credentials: CredentialEntryItem[]
+  onAddConnection?: () => void
   onAddKey?: () => void
 }
 
@@ -360,6 +372,292 @@ const FALLBACK_MODELS_BY_PROVIDER: Record<string, ProviderModelItem[]> = {
       enabled: true,
     },
   ],
+  groq: [
+    {
+      id: 'llama-3.3-70b-versatile',
+      modelID: 'llama-3.3-70b-versatile',
+      name: 'Llama 3.3 70B Versatile',
+      type: 'chat',
+      released: '2024-12-06',
+      inputCost: 0.59,
+      outputCost: 0.79,
+      limitContext: 128_000,
+      hasVision: false,
+      hasVideo: false,
+      hasAudio: false,
+      hasTools: true,
+      isNew: true,
+      enabled: true,
+    },
+    {
+      id: 'llama-3.1-8b-instant',
+      modelID: 'llama-3.1-8b-instant',
+      name: 'Llama 3.1 8B Instant',
+      type: 'chat',
+      released: '2024-07-23',
+      inputCost: 0.05,
+      outputCost: 0.08,
+      limitContext: 128_000,
+      hasVision: false,
+      hasVideo: false,
+      hasAudio: false,
+      hasTools: true,
+      isNew: false,
+      enabled: true,
+    },
+    {
+      id: 'deepseek-r1-distill-llama-70b',
+      modelID: 'deepseek-r1-distill-llama-70b',
+      name: 'DeepSeek R1 Distill Llama 70B',
+      type: 'chat',
+      released: '2025-01-20',
+      inputCost: 0.75,
+      outputCost: 0.99,
+      limitContext: 128_000,
+      hasVision: false,
+      hasVideo: false,
+      hasAudio: false,
+      hasTools: true,
+      isNew: true,
+      enabled: true,
+    },
+  ],
+  deepseek: [
+    {
+      id: 'deepseek-chat',
+      modelID: 'deepseek-chat',
+      name: 'DeepSeek-V3',
+      type: 'chat',
+      released: '2024-12-26',
+      inputCost: 0.14,
+      outputCost: 0.28,
+      limitContext: 64_000,
+      hasVision: false,
+      hasVideo: false,
+      hasAudio: false,
+      hasTools: true,
+      isNew: true,
+      enabled: true,
+    },
+    {
+      id: 'deepseek-reasoner',
+      modelID: 'deepseek-reasoner',
+      name: 'DeepSeek-R1',
+      type: 'chat',
+      released: '2025-01-20',
+      inputCost: 0.55,
+      outputCost: 2.19,
+      limitContext: 64_000,
+      hasVision: false,
+      hasVideo: false,
+      hasAudio: false,
+      hasTools: true,
+      isNew: true,
+      enabled: true,
+    },
+  ],
+  mistral: [
+    {
+      id: 'mistral-large-latest',
+      modelID: 'mistral-large-latest',
+      name: 'Mistral Large 2411',
+      type: 'chat',
+      released: '2024-11-18',
+      inputCost: 2.0,
+      outputCost: 6.0,
+      limitContext: 128_000,
+      hasVision: false,
+      hasVideo: false,
+      hasAudio: false,
+      hasTools: true,
+      isNew: false,
+      enabled: true,
+    },
+    {
+      id: 'codestral-latest',
+      modelID: 'codestral-latest',
+      name: 'Codestral 2501',
+      type: 'chat',
+      released: '2025-01-14',
+      inputCost: 0.3,
+      outputCost: 0.9,
+      limitContext: 256_000,
+      hasVision: false,
+      hasVideo: false,
+      hasAudio: false,
+      hasTools: true,
+      isNew: true,
+      enabled: true,
+    },
+    {
+      id: 'pixtral-12b-2409',
+      modelID: 'pixtral-12b-2409',
+      name: 'Pixtral 12B',
+      type: 'image',
+      released: '2024-09-17',
+      inputCost: 0.15,
+      outputCost: 0.15,
+      limitContext: 128_000,
+      hasVision: true,
+      hasVideo: false,
+      hasAudio: false,
+      hasTools: false,
+      isNew: false,
+      enabled: true,
+    },
+  ],
+  togetherai: [
+    {
+      id: 'meta-llama/Llama-3.3-70B-Instruct-Turbo',
+      modelID: 'meta-llama/Llama-3.3-70B-Instruct-Turbo',
+      name: 'Llama 3.3 70B Turbo',
+      type: 'chat',
+      released: '2024-12-06',
+      inputCost: 0.88,
+      outputCost: 0.88,
+      limitContext: 128_000,
+      hasVision: false,
+      hasVideo: false,
+      hasAudio: false,
+      hasTools: true,
+      isNew: true,
+      enabled: true,
+    },
+    {
+      id: 'deepseek-ai/DeepSeek-R1',
+      modelID: 'deepseek-ai/DeepSeek-R1',
+      name: 'DeepSeek R1 (Together)',
+      type: 'chat',
+      released: '2025-01-20',
+      inputCost: 0.8,
+      outputCost: 2.4,
+      limitContext: 128_000,
+      hasVision: false,
+      hasVideo: false,
+      hasAudio: false,
+      hasTools: true,
+      isNew: true,
+      enabled: true,
+    },
+  ],
+  xai: [
+    {
+      id: 'grok-2-1212',
+      modelID: 'grok-2-1212',
+      name: 'Grok 2',
+      type: 'chat',
+      released: '2024-12-12',
+      inputCost: 2.0,
+      outputCost: 10.0,
+      limitContext: 131_072,
+      hasVision: true,
+      hasVideo: false,
+      hasAudio: false,
+      hasTools: true,
+      isNew: false,
+      enabled: true,
+    },
+    {
+      id: 'grok-2-vision-1212',
+      modelID: 'grok-2-vision-1212',
+      name: 'Grok 2 Vision',
+      type: 'image',
+      released: '2024-12-12',
+      inputCost: 2.0,
+      outputCost: 10.0,
+      limitContext: 32_768,
+      hasVision: true,
+      hasVideo: false,
+      hasAudio: false,
+      hasTools: true,
+      isNew: false,
+      enabled: true,
+    },
+  ],
+  cohere: [
+    {
+      id: 'command-r-plus-08-2024',
+      modelID: 'command-r-plus-08-2024',
+      name: 'Command R+',
+      type: 'chat',
+      released: '2024-08-20',
+      inputCost: 2.5,
+      outputCost: 10.0,
+      limitContext: 128_000,
+      hasVision: false,
+      hasVideo: false,
+      hasAudio: false,
+      hasTools: true,
+      isNew: false,
+      enabled: true,
+    },
+    {
+      id: 'command-r-08-2024',
+      modelID: 'command-r-08-2024',
+      name: 'Command R',
+      type: 'chat',
+      released: '2024-08-20',
+      inputCost: 0.15,
+      outputCost: 0.6,
+      limitContext: 128_000,
+      hasVision: false,
+      hasVideo: false,
+      hasAudio: false,
+      hasTools: true,
+      isNew: false,
+      enabled: true,
+    },
+  ],
+  openrouter: [
+    {
+      id: 'openrouter/auto',
+      modelID: 'openrouter/auto',
+      name: 'OpenRouter Auto Router',
+      type: 'chat',
+      released: '2024-01-01',
+      inputCost: 1.0,
+      outputCost: 3.0,
+      limitContext: 128_000,
+      hasVision: true,
+      hasVideo: false,
+      hasAudio: false,
+      hasTools: true,
+      isNew: false,
+      enabled: true,
+    },
+    {
+      id: 'anthropic/claude-3.7-sonnet',
+      modelID: 'anthropic/claude-3.7-sonnet',
+      name: 'Claude 3.7 Sonnet (Router)',
+      type: 'chat',
+      released: '2025-02-24',
+      inputCost: 3.0,
+      outputCost: 15.0,
+      limitContext: 200_000,
+      hasVision: true,
+      hasVideo: false,
+      hasAudio: false,
+      hasTools: true,
+      isNew: true,
+      enabled: true,
+    },
+    {
+      id: 'deepseek/deepseek-r1',
+      modelID: 'deepseek/deepseek-r1',
+      name: 'DeepSeek R1 (Router)',
+      type: 'chat',
+      released: '2025-01-20',
+      inputCost: 0.7,
+      outputCost: 2.5,
+      limitContext: 128_000,
+      hasVision: false,
+      hasVideo: false,
+      hasAudio: false,
+      hasTools: true,
+      isNew: true,
+      enabled: true,
+    },
+  ],
 }
 
 function formatContext(tokens?: number): string {
@@ -378,6 +676,7 @@ export function ManageKeysSheet({
   onOpenChange,
   provider,
   credentials,
+  onAddConnection,
   onAddKey,
 }: ManageKeysSheetProps) {
   const { t } = useTranslation(['model-provider', 'common'])
@@ -404,8 +703,11 @@ export function ManageKeysSheet({
   }, [activeCredential, selectedCredId])
 
   const currentCred = useMemo(() => {
-    return credentials.find((c) => c.id === selectedCredId) || activeCredential
+    if (selectedCredId === 'new') return null
+    return credentials.find((c) => c.id === selectedCredId) || activeCredential || null
   }, [credentials, selectedCredId, activeCredential])
+
+  const isAddingNew = credentials.length === 0 || selectedCredId === 'new'
 
   // Form State
   const defaultProxy = getDefaultProxyUrl(provider.id)
@@ -431,6 +733,7 @@ export function ManageKeysSheet({
 
   // Rename modal state
   const [renameTarget, setRenameTarget] = useState<CredentialEntryItem | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<CredentialEntryItem | null>(null)
   const [newLabel, setNewLabel] = useState('')
 
   // Synchronize when current credential changes or drawer opens
@@ -521,7 +824,21 @@ export function ManageKeysSheet({
               ? 'openai'
               : pId.includes('anthropic')
                 ? 'anthropic'
-                : ''
+                : pId.includes('deepseek')
+                  ? 'deepseek'
+                  : pId.includes('groq')
+                    ? 'groq'
+                    : pId.includes('mistral')
+                      ? 'mistral'
+                      : pId.includes('together')
+                        ? 'togetherai'
+                        : pId.includes('xai') || pId.includes('grok')
+                          ? 'xai'
+                          : pId.includes('cohere')
+                            ? 'cohere'
+                            : pId.includes('openrouter')
+                              ? 'openrouter'
+                              : ''
         ] || [
           {
             id: `${pId}-standard`,
@@ -634,6 +951,14 @@ export function ManageKeysSheet({
     })
   }
 
+  const handleAddNewAccount = () => {
+    setSelectedCredId('new')
+    setApiKey('')
+    setAccountLabel('')
+    setCheckResult(null)
+    onAddConnection?.() || onAddKey?.()
+  }
+
   // Handle Connectivity Check
   const handleConnectivityCheck = async () => {
     if (!apiKey.trim()) {
@@ -720,28 +1045,25 @@ export function ManageKeysSheet({
     }
   }
 
-  // Remove Account
-  const handleRemoveAccount = async (id: string, label: string) => {
-    const confirmMessage = t('modelProvider.removeAccountConfirm', {
-      defaultValue: `Are you sure you want to remove account "${label}"?`,
-      label,
-    })
-    if (!confirm(confirmMessage)) return
+  // Remove Connection
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return
 
     try {
-      await removeCred.mutateAsync(id)
+      await removeCred.mutateAsync(deleteTarget.id)
       toast.success(
         t('modelProvider.removedAccount', {
-          defaultValue: `Removed account "${label}"`,
-          label,
+          defaultValue: `Removed connection "${deleteTarget.label}"`,
+          label: deleteTarget.label,
         })
       )
-      if (selectedCredId === id) {
+      if (selectedCredId === deleteTarget.id) {
         setSelectedCredId(null)
       }
+      setDeleteTarget(null)
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : 'Failed to remove account'
+        err instanceof Error ? err.message : 'Failed to remove connection'
       )
     }
   }
@@ -776,7 +1098,7 @@ export function ManageKeysSheet({
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent
           side='right'
-          className='flex w-full flex-col p-0 sm:max-w-2xl md:max-w-3xl lg:max-w-4xl'
+          className='flex w-full flex-col p-0 sm:max-w-2xl md:max-w-3xl select-text'
         >
           {/* Header Bar */}
           <SheetHeader className='flex flex-row items-center justify-between border-b border-border/50 px-6 py-4 pe-14 space-y-0'>
@@ -811,10 +1133,16 @@ export function ManageKeysSheet({
 
             {/* Account Selector if multiple accounts exist */}
             <div className='flex items-center gap-1.5'>
-              {credentials.length > 1 && (
+              {credentials.length > 0 && (
                 <Select
-                  value={currentCred?.id}
-                  onValueChange={(val) => setSelectedCredId(val)}
+                  value={selectedCredId === 'new' ? 'new' : currentCred?.id}
+                  onValueChange={(val) => {
+                    setSelectedCredId(val)
+                    if (val === 'new') {
+                      setApiKey('')
+                      setAccountLabel('')
+                    }
+                  }}
                 >
                   <SelectTrigger className='h-8 text-xs w-[170px]'>
                     <SelectValue placeholder='Select account' />
@@ -825,24 +1153,27 @@ export function ManageKeysSheet({
                         {c.label || 'API Key'} {c.active ? '(Active)' : ''}
                       </SelectItem>
                     ))}
+                    <SelectItem value='new'>
+                      + {t('modelProvider.addConnection', 'Add Connection')}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               )}
 
-              {onAddKey && (
+              {credentials.length > 0 && selectedCredId !== 'new' && (
                 <Button
                   variant='outline'
                   size='sm'
                   className='h-8 px-2 text-xs gap-1'
-                  onClick={onAddKey}
-                  title={t('modelProvider.addAnotherKey', 'Add Account')}
+                  onClick={handleAddNewAccount}
+                  title={t('modelProvider.addAnotherKey', 'Add Connection')}
                 >
                   <Plus className='h-3.5 w-3.5' />
-                  <span className='hidden sm:inline'>{t('modelProvider.addKey', 'Add Key')}</span>
+                  <span className='hidden sm:inline'>{t('modelProvider.addConnection', 'Add Connection')}</span>
                 </Button>
               )}
 
-              {currentCred && !currentCred.active && (
+              {currentCred && !currentCred.active && selectedCredId !== 'new' && (
                 <Button
                   size='sm'
                   variant='outline'
@@ -854,7 +1185,7 @@ export function ManageKeysSheet({
                 </Button>
               )}
 
-              {currentCred && (
+              {currentCred && selectedCredId !== 'new' && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant='ghost' size='icon' className='h-8 w-8'>
@@ -874,7 +1205,7 @@ export function ManageKeysSheet({
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       className='text-destructive focus:text-destructive'
-                      onClick={() => handleRemoveAccount(currentCred.id, currentCred.label)}
+                      onClick={() => setDeleteTarget(currentCred)}
                     >
                       <Trash2 className='mr-2 h-3.5 w-3.5' />
                       {t('common:operation.delete', 'Delete')}
@@ -886,10 +1217,36 @@ export function ManageKeysSheet({
           </SheetHeader>
 
           {/* Scrollable Content */}
-          <div className='flex-1 overflow-y-auto px-6 py-6 space-y-6'>
+          <div className='flex-1 overflow-y-auto px-6 py-6 space-y-6 select-text'>
             {/* Top Form: API Key, Proxy URL, Client Request Mode, Connectivity Check */}
             <div className='space-y-4'>
-              {/* Row 1: API Key */}
+              {/* Row 1: Account Name / Label */}
+              <div className='flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between'>
+                <div className='sm:w-5/12'>
+                  <Label className='text-sm font-semibold text-foreground'>
+                    {t('modelProvider.connectionName', 'Connect Name')}
+                  </Label>
+                  <p className='text-xs text-muted-foreground mt-0.5'>
+                    {t('modelProvider.connectionNameSubtitle', 'Optional name to identify this connection')}
+                  </p>
+                </div>
+
+                <div className='sm:w-7/12'>
+                  <Input
+                    type='text'
+                    name='provider-account-label'
+                    id='provider-account-label'
+                    autoComplete='off'
+                    data-form-type='other'
+                    placeholder={t('modelProvider.connectionNamePlaceholder', 'e.g. Personal Key, Work')}
+                    value={accountLabel}
+                    onChange={(e) => setAccountLabel(e.target.value)}
+                    className='text-xs h-9'
+                  />
+                </div>
+              </div>
+
+              {/* Row 2: API Key */}
               <div className='flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between'>
                 <div className='sm:w-5/12'>
                   <Label className='text-sm font-semibold text-foreground'>
@@ -907,14 +1264,33 @@ export function ManageKeysSheet({
                   <div className='relative'>
                     <Input
                       type={showPassword ? 'text' : 'password'}
-                      placeholder='••••••••••••••••••••••••••••'
+                      name='provider-secret-access-token'
+                      id='provider-secret-access-token'
+                      autoComplete='new-password'
+                      autoCorrect='off'
+                      autoCapitalize='off'
+                      spellCheck={false}
+                      data-1p-ignore
+                      data-lpignore='true'
+                      data-bwignore='true'
+                      data-form-type='other'
+                      placeholder={
+                        isAddingNew
+                          ? provider.id.includes('google') || provider.id.includes('gemini')
+                            ? 'AIzaSy...'
+                            : provider.id.includes('openai')
+                              ? 'sk-...'
+                              : provider.id.includes('anthropic')
+                                ? 'sk-ant-...'
+                                : 'Enter your API key...'
+                          : '••••••••••••••••••••••••••••'
+                      }
                       value={apiKey}
                       onChange={(e) => {
                         setApiKey(e.target.value)
                         setCheckResult(null)
                       }}
                       className='pe-9 font-mono text-xs h-9'
-                      autoComplete='off'
                     />
                     <button
                       type='button'
@@ -932,7 +1308,7 @@ export function ManageKeysSheet({
                 </div>
               </div>
 
-              {/* Row 2: API Proxy URL */}
+              {/* Row 3: API Proxy URL */}
               <div className='flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between'>
                 <div className='sm:w-5/12'>
                   <Label className='text-sm font-semibold text-foreground'>
@@ -946,6 +1322,10 @@ export function ManageKeysSheet({
                 <div className='sm:w-7/12'>
                   <Input
                     type='text'
+                    name='provider-proxy-url'
+                    id='provider-proxy-url'
+                    autoComplete='off'
+                    data-form-type='other'
                     placeholder={defaultProxy || 'https://api.example.com'}
                     value={proxyUrl}
                     onChange={(e) => {
@@ -958,7 +1338,7 @@ export function ManageKeysSheet({
               </div>
 
               {/* Row 3: Use Client Request Mode */}
-              <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
+              <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between hidden'>
                 <div className='sm:w-5/12'>
                   <Label className='text-sm font-semibold text-foreground'>
                     {t('modelProvider.clientRequestMode', 'Use Client Request Mode')}
@@ -1045,7 +1425,7 @@ export function ManageKeysSheet({
               )}
 
               {/* Security encryption notice */}
-              <div className='flex items-center justify-center gap-1.5 pt-2 text-xs text-muted-foreground'>
+              <div className='flex items-center justify-left gap-1.5 pt-2 text-xs text-muted-foreground'>
                 <Lock className='h-3.5 w-3.5' />
                 <span>
                   {t(
@@ -1083,7 +1463,18 @@ export function ManageKeysSheet({
                     variant='outline'
                     size='sm'
                     className='h-8 px-2.5 text-xs gap-1.5'
-                    onClick={() => refetchServerModels()}
+                    onClick={async () => {
+                      try {
+                        const res = await refetchServerModels()
+                        if (res.data && res.data.length > 0) {
+                          toast.success(t('modelProvider.fetchModelsSuccess', 'Models refreshed from server successfully'))
+                        } else {
+                          toast.info(t('modelProvider.fetchModelsEmpty', 'No models found on server for this provider.'))
+                        }
+                      } catch {
+                        toast.error(t('modelProvider.fetchModelsError', 'Failed to fetch models from server'))
+                      }
+                    }}
                     disabled={isFetchingModels}
                   >
                     <RotateCw
@@ -1092,17 +1483,6 @@ export function ManageKeysSheet({
                       }`}
                     />
                     <span>{t('modelProvider.fetchModels', 'Fetch models')}</span>
-                  </Button>
-
-                  <Button
-                    variant='outline'
-                    size='icon'
-                    className='h-8 w-8 text-muted-foreground'
-                    onClick={() => {
-                      toast.info('Custom model addition will be supported in next release.')
-                    }}
-                  >
-                    <Plus className='h-4 w-4' />
                   </Button>
 
                   <DropdownMenu>
@@ -1264,25 +1644,25 @@ export function ManageKeysSheet({
                           <ProviderIcon providerId={provider.id} size={22} />
                         </div>
 
-                        <div className='min-w-0 flex-1'>
+                        <div className='min-w-0 flex-1 select-text'>
                           <div className='flex items-center gap-2 flex-wrap'>
-                            <span className='text-sm font-semibold text-foreground truncate leading-tight'>
+                            <span className='text-sm font-semibold text-foreground truncate leading-tight select-text'>
                               {model.name}
                             </span>
-                            <span className='rounded border border-border/60 bg-muted/50 px-2 py-0.5 font-mono text-[11px] text-muted-foreground'>
+                            <span className='rounded border border-border/60 bg-muted/50 px-2 py-0.5 font-mono text-[11px] text-muted-foreground select-text'>
                               {model.modelID}
                             </span>
                             {model.isNew && (
                               <Badge
                                 variant='outline'
-                                className='border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] py-0 px-1.5'
+                                className='border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] py-0 px-1.5 select-text'
                               >
                                 {t('modelProvider.newBadge', 'New')}
                               </Badge>
                             )}
                           </div>
 
-                          <p className='text-xs text-muted-foreground mt-0.5 truncate'>
+                          <p className='text-xs text-muted-foreground mt-0.5 truncate select-text'>
                             Released at {model.released || '2025-01-01'} · Input $
                             {model.inputCost?.toFixed(2) || '1.00'}/M · Output $
                             {model.outputCost?.toFixed(2) || '4.00'}/M
@@ -1340,11 +1720,23 @@ export function ManageKeysSheet({
                 })}
 
                 {displayedModels.length === 0 && (
-                  <div className='rounded-lg border border-dashed border-border/70 p-8 text-center text-xs text-muted-foreground'>
-                    {t(
-                      'modelProvider.noModelsFound',
-                      'No models found matching your search.'
-                    )}
+                  <div className='flex flex-col items-center justify-center rounded-lg border border-dashed border-border/70 p-8 text-center text-xs text-muted-foreground'>
+                    <Sparkles className='mb-2 h-7 w-7 text-muted-foreground/50' />
+                    <p className='font-semibold text-foreground'>
+                      {credentials.length === 0
+                        ? t('modelProvider.noModelsUnconfigured', 'Provider not connected yet')
+                        : searchModel.trim()
+                          ? t('modelProvider.noModelsFound', 'No models found matching your search.')
+                          : t('modelProvider.noModelsAvailable', 'No models available for this provider.')}
+                    </p>
+                    <p className='text-[11px] text-muted-foreground mt-1 max-w-sm'>
+                      {credentials.length === 0
+                        ? t(
+                            'modelProvider.noModelsUnconfiguredDesc',
+                            'Enter your API Key above and click Connect to authenticate and load live models.'
+                          )
+                        : t('modelProvider.tryDifferentFilter', 'Try adjusting your search or category filter.')}
+                    </p>
                   </div>
                 )}
               </div>
@@ -1373,7 +1765,12 @@ export function ManageKeysSheet({
               ) : (
                 <ShieldCheck className='mr-1.5 h-4 w-4' />
               )}
-              {t('modelProvider.saveConfiguration', 'Save Configuration')}
+              {isAddingNew
+                ? t('modelProvider.connectProvider', {
+                    defaultValue: `Connect ${provider.name}`,
+                    name: provider.name,
+                  })
+                : t('modelProvider.saveConfiguration', 'Save Configuration')}
             </Button>
           </div>
         </SheetContent>
@@ -1427,6 +1824,46 @@ export function ManageKeysSheet({
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Alert Dialog */}
+      <AlertDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(next) => {
+          if (!next && !removeCred.isPending) setDeleteTarget(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t('modelProvider.removeConnectionTitle', 'Delete Connection')}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('modelProvider.removeConnectionDesc', {
+                defaultValue: `Are you sure you want to delete connection "${deleteTarget?.label}"? This action cannot be undone.`,
+                label: deleteTarget?.label,
+              })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={removeCred.isPending}>
+              {t('common:operation.cancel', 'Cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className={buttonVariants({ variant: 'destructive' })}
+              onClick={(e) => {
+                e.preventDefault()
+                handleConfirmDelete()
+              }}
+              disabled={removeCred.isPending}
+            >
+              {removeCred.isPending && (
+                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+              )}
+              {t('common:operation.delete', 'Delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }

@@ -2,7 +2,17 @@ import { useState } from 'react'
 import { Check, CheckCircle2, MoreVertical, Pencil, Trash2, Play, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import {
   Dialog,
   DialogContent,
@@ -54,6 +64,9 @@ export function AccountList({
   const [renameTarget, setRenameTarget] = useState<CredentialEntryItem | null>(
     null
   )
+  const [deleteTarget, setDeleteTarget] = useState<CredentialEntryItem | null>(
+    null
+  )
   const [newLabel, setNewLabel] = useState('')
   const [testingId, setTestingId] = useState<string | null>(null)
 
@@ -85,14 +98,15 @@ export function AccountList({
     }
   }
 
-  const handleRemove = async (id: string, label: string) => {
-    if (!confirm(`Are you sure you want to remove account "${label}"?`)) return
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return
     try {
-      await removeCred.mutateAsync(id)
-      toast.success(`Removed account "${label}"`)
+      await removeCred.mutateAsync(deleteTarget.id)
+      toast.success(`Removed connection "${deleteTarget.label}"`)
+      setDeleteTarget(null)
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : 'Failed to remove account'
+        err instanceof Error ? err.message : 'Failed to remove connection'
       )
     }
   }
@@ -195,7 +209,7 @@ export function AccountList({
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     className='text-destructive focus:text-destructive'
-                    onClick={() => handleRemove(account.id, account.label)}
+                    onClick={() => setDeleteTarget(account)}
                   >
                     <Trash2 className='mr-2 h-3.5 w-3.5' />
                     Remove
@@ -249,6 +263,39 @@ export function AccountList({
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Alert Dialog */}
+      <AlertDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => !open && !removeCred.isPending && setDeleteTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Connection</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove connection &quot;{deleteTarget?.label}&quot;? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={removeCred.isPending}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className={buttonVariants({ variant: 'destructive' })}
+              onClick={(e) => {
+                e.preventDefault()
+                handleConfirmDelete()
+              }}
+              disabled={removeCred.isPending}
+            >
+              {removeCred.isPending && (
+                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+              )}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }

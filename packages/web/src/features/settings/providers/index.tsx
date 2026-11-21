@@ -1,12 +1,15 @@
 import { useState, useMemo } from 'react'
-import { Bot, RefreshCw, Search, AlertCircle, Server } from 'lucide-react'
+import { Bot, RefreshCw, Search, AlertCircle, Server, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { ProviderCard } from './components/provider-card'
+import { ProviderCard, type ProviderItem } from './components/provider-card'
+import { ManageKeysSheet } from './components/manage-keys-sheet'
 import { ServerConfigDialog } from './components/server-config-dialog'
-import { useIntegrations, useCredentials } from './api'
+import { useIntegrations, useCredentials, providerQueryKeys } from './api'
 import { getServerConfig } from '@/lib/agent-platform-client'
 
 // Fallback catalog of major providers in case the server list is cold
@@ -25,8 +28,11 @@ const KNOWN_PROVIDERS = [
 
 export function ProvidersSettings() {
   const { t } = useTranslation(['model-provider', 'common'])
+  const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   const [serverConfigOpen, setServerConfigOpen] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [activeProviderForSheet, setActiveProviderForSheet] = useState<ProviderItem | null>(null)
 
   const {
     data: integrations,
@@ -38,6 +44,23 @@ export function ProvidersSettings() {
   const { data: credentials = [] } = useCredentials()
 
   const serverConfig = getServerConfig()
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    try {
+      await Promise.allSettled([
+        queryClient.invalidateQueries({ queryKey: providerQueryKeys.integrations }),
+        queryClient.invalidateQueries({ queryKey: providerQueryKeys.credentials }),
+        queryClient.invalidateQueries({ queryKey: providerQueryKeys.models }),
+        refetch(),
+      ])
+      toast.success(t('modelProvider.refreshedSuccess', 'Providers refreshed successfully'))
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to refresh providers')
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
 
   const providerList = useMemo(() => {
     const map = new Map<string, { id: string; name: string }>()
@@ -113,12 +136,12 @@ export function ProvidersSettings() {
             variant='outline'
             size='sm'
             className='gap-2 text-xs'
-            onClick={() => refetch()}
-            disabled={isIntegrationsLoading}
+            onClick={handleRefresh}
+            disabled={isRefreshing || isIntegrationsLoading}
           >
             <RefreshCw
               className={`h-3.5 w-3.5 ${
-                isIntegrationsLoading ? 'animate-spin' : ''
+                isRefreshing || isIntegrationsLoading ? 'animate-spin' : ''
               }`}
             />
             {t('modelProvider.refresh', 'Refresh')}
@@ -140,7 +163,7 @@ export function ProvidersSettings() {
             <span>
               {t('modelProvider.serverAuthErrorDesc')}{' '}
               <code className='rounded bg-destructive/20 px-1 py-0.5 font-mono text-[11px]'>
-                opencode service get password
+                bun run dev service get passwordassword
               </code>
             </span>
             <Button
@@ -181,16 +204,37 @@ export function ProvidersSettings() {
 
       {/* Search Filter */}
       <div className='relative max-w-sm'>
-        <Search className='absolute inset-y-0 start-3 my-auto h-4 w-4 text-muted-foreground' />
+        <Search className='pointer-events-none absolute inset-y-0 start-3 my-auto h-4 w-4 text-muted-foreground' />
         <Input
+          type='search'
+          name='ai-provider-search-query'
+          id='ai-provider-search-query'
+          autoComplete='off'
+          autoCorrect='off'
+          autoCapitalize='off'
+          spellCheck={false}
+          data-1p-ignore
+          data-lpignore='true'
+          data-bwignore='true'
+          data-form-type='other'
           placeholder={t(
             'modelProvider.searchProviders',
             'Search providers...'
           )}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className='ps-9 h-9 text-xs'
+          className='ps-9 pe-8 h-9 text-xs'
         />
+        {search && (
+          <button
+            type='button'
+            onClick={() => setSearch('')}
+            className='absolute inset-y-0 end-2.5 my-auto flex h-4 w-4 items-center justify-center text-muted-foreground hover:text-foreground'
+            title='Clear search'
+          >
+            <X className='h-3.5 w-3.5' />
+          </button>
+        )}
       </div>
 
       {/* Providers Grid - 4 Columns on Large Screens */}
@@ -202,6 +246,7 @@ export function ProvidersSettings() {
               key={provider.id}
               provider={provider}
               credentials={creds}
+              onOpenSettings={() => setActiveProviderForSheet(provider)}
             />
           )
         })}
@@ -217,6 +262,18 @@ export function ProvidersSettings() {
             )}
           </p>
         </div>
+      )}
+
+      {/* Lifted ManageKeysSheet: only 1 instance exists in DOM */}
+      {activeProviderForSheet && (
+        <ManageKeysSheet
+          open={Boolean(activeProviderForSheet)}
+          onOpenChange={(open) => {
+            if (!open) setActiveProviderForSheet(null)
+          }}
+          provider={activeProviderForSheet}
+          credentials={credentialsByIntegration.get(activeProviderForSheet.id) || []}
+        />
       )}
 
       <ServerConfigDialog

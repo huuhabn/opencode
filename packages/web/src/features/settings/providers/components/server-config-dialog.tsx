@@ -118,7 +118,7 @@ export function ServerConfigDialog({
               <span className='text-[11px] text-muted-foreground'>
                 {t('modelProvider.serverPasswordHelp', 'Obtain via')}{' '}
                 <code className='rounded bg-muted px-1 font-mono text-[10px]'>
-                  opencode service get password
+                  bun run dev service get password
                 </code>
               </span>
             </div>

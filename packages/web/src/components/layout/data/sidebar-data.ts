@@ -31,6 +31,8 @@ import {
   Webhook,
   Activity,
   Compass,
+  Cpu,
+  Sparkles,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ClerkLogo } from '@/assets/clerk-logo'
@@ -160,6 +162,16 @@ export function useSidebarData(): SidebarData {
             defaultValue: 'AI Engine',
           }),
           items: [
+            {
+              title: t('modelProvider.aiProviders', 'AI Providers'),
+              url: '/settings/providers',
+              icon: Cpu,
+            },
+            {
+              title: t('modelProvider.aiModels', 'AI Models'),
+              url: '/settings/models',
+              icon: Sparkles,
+            },
             {
               title: t('Auth', 'Auth'),
               icon: ShieldCheck,

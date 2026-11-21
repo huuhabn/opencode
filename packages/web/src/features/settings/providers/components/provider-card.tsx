@@ -16,14 +16,27 @@ export interface ProviderItem {
 interface ProviderCardProps {
   provider: ProviderItem
   credentials: CredentialEntryItem[]
+  onOpenSettings?: () => void
 }
 
-export function ProviderCard({ provider, credentials }: ProviderCardProps) {
+export function ProviderCard({
+  provider,
+  credentials,
+  onOpenSettings,
+}: ProviderCardProps) {
   const { t } = useTranslation(['model-provider', 'common'])
   const [sheetOpen, setSheetOpen] = useState(false)
 
   const isConnected = credentials.length > 0
   const storageKey = `opencode_provider_enabled_${provider.id}`
+
+  const openSheet = () => {
+    if (onOpenSettings) {
+      onOpenSettings()
+    } else {
+      setSheetOpen(true)
+    }
+  }
 
   const [isEnabled, setIsEnabled] = useState(() => {
     try {
@@ -39,7 +52,7 @@ export function ProviderCard({ provider, credentials }: ProviderCardProps) {
 
   const handleToggle = (checked: boolean) => {
     if (!isConnected && checked) {
-      setSheetOpen(true)
+      openSheet()
       return
     }
     setIsEnabled(checked)
@@ -61,7 +74,7 @@ export function ProviderCard({ provider, credentials }: ProviderCardProps) {
   return (
     <>
       <Card
-        onClick={() => setSheetOpen(true)}
+        onClick={openSheet}
         className='group relative flex flex-row cursor-pointer items-center gap-2.5 rounded-xl border border-border/70 bg-card p-2.5 transition-all duration-200 hover:border-primary/40 hover:shadow-xs'
       >
         {/* [Icon 36px] */}
@@ -113,15 +126,17 @@ export function ProviderCard({ provider, credentials }: ProviderCardProps) {
         </div>
       </Card>
 
-      <ManageKeysSheet
-        open={sheetOpen}
-        onOpenChange={setSheetOpen}
-        provider={{
-          ...provider,
-          name: displayName,
-        }}
-        credentials={credentials}
-      />
+      {!onOpenSettings && (
+        <ManageKeysSheet
+          open={sheetOpen}
+          onOpenChange={setSheetOpen}
+          provider={{
+            ...provider,
+            name: displayName,
+          }}
+          credentials={credentials}
+        />
+      )}
     </>
   )
 }
