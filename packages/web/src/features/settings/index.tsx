@@ -9,8 +9,6 @@ import {
   Key,
   Webhook,
   ShieldCheck,
-  Cpu,
-  Sparkles,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Separator } from '@/components/ui/separator'
@@ -28,10 +26,11 @@ export function Settings() {
   const { t } = useTranslation(['model-provider', 'common'])
   const { pathname } = useLocation()
 
-  // Use dedicated AI Engine layout for Providers and Models with independent scroll panes
+  // Use dedicated AI Engine layout for Providers, Models, and Agent with independent scroll panes
   if (
     pathname.startsWith('/settings/providers') ||
-    pathname.startsWith('/settings/models')
+    pathname.startsWith('/settings/models') ||
+    pathname.startsWith('/settings/agent')
   ) {
     return <AiSettingsLayout />
   }
@@ -39,22 +38,6 @@ export function Settings() {
   const sidebarNavGroups: NavGroup[] = useMemo(
     () => [
       {
-        title: t('modelProvider.aiEngine', 'AI Engine'),
-        items: [
-          {
-            title: t('modelProvider.aiProviders', 'AI Providers'),
-            href: '/settings/providers',
-            icon: <Cpu size={18} />,
-          },
-          {
-            title: t('modelProvider.aiModels', 'AI Models'),
-            href: '/settings/models',
-            icon: <Sparkles size={18} />,
-          },
-        ],
-      },
-      {
-        title: t('modelProvider.accountAndPreferences', 'Account & Preferences'),
         items: [
           {
             title: t('modelProvider.profile', 'Profile'),
@@ -115,10 +98,10 @@ export function Settings() {
 
       <Main fixed>
         <div className='space-y-0.5'>
-          <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>
+          <h2 className='text-xl font-bold tracking-tight md:text-2xl'>
             {t('common:operation.settings', 'Settings')}
-          </h1>
-          <p className='text-muted-foreground'>
+          </h2>
+          <p className='text-sm text-muted-foreground'>
             {t(
               'modelProvider.settingsPageDesc',
               'Configure your AI model providers, models catalog, and account preferences.'

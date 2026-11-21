@@ -90,7 +90,7 @@ export function ModelsSettings() {
 
   return (
     <div className='w-full space-y-6 pb-12'>
-      <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-border/50 pb-5'>
+      <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-border/50 pb-4'>
         <div>
           <h2 className='text-xl font-bold tracking-tight'>
             {t('modelProvider.aiModelsCatalog', 'AI Models Catalog')}

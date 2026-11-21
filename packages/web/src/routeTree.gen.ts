@@ -37,6 +37,7 @@ import { Route as AuthenticatedProductsProductIdRouteImport } from './routes/_au
 import { Route as AuthenticatedReactQueryIndexRouteImport } from './routes/_authenticated/react-query/index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
+import { Route as AuthenticatedSettingsAgentRouteImport } from './routes/_authenticated/settings/agent'
 import { Route as AuthenticatedSettingsApiKeysRouteImport } from './routes/_authenticated/settings/api-keys'
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
 import { Route as AuthenticatedSettingsDisplayRouteImport } from './routes/_authenticated/settings/display'
@@ -202,6 +203,12 @@ const AuthenticatedSettingsAccountRoute =
     path: '/account',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
   } as any)
+const AuthenticatedSettingsAgentRoute =
+  AuthenticatedSettingsAgentRouteImport.update({
+    id: '/agent',
+    path: '/agent',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
 const AuthenticatedSettingsApiKeysRoute =
   AuthenticatedSettingsApiKeysRouteImport.update({
     id: '/api-keys',
@@ -319,6 +326,7 @@ export interface FileRoutesByFullPath {
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/products/$productId': typeof AuthenticatedProductsProductIdRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
+  '/settings/agent': typeof AuthenticatedSettingsAgentRoute
   '/settings/api-keys': typeof AuthenticatedSettingsApiKeysRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
@@ -362,6 +370,7 @@ export interface FileRoutesByTo {
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/products/$productId': typeof AuthenticatedProductsProductIdRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
+  '/settings/agent': typeof AuthenticatedSettingsAgentRoute
   '/settings/api-keys': typeof AuthenticatedSettingsApiKeysRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
@@ -410,6 +419,7 @@ export interface FileRoutesById {
   '/_authenticated/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/_authenticated/products/$productId': typeof AuthenticatedProductsProductIdRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
+  '/_authenticated/settings/agent': typeof AuthenticatedSettingsAgentRoute
   '/_authenticated/settings/api-keys': typeof AuthenticatedSettingsApiKeysRoute
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/_authenticated/settings/display': typeof AuthenticatedSettingsDisplayRoute
@@ -456,6 +466,7 @@ export interface FileRouteTypes {
     | '/errors/$error'
     | '/products/$productId'
     | '/settings/account'
+    | '/settings/agent'
     | '/settings/api-keys'
     | '/settings/appearance'
     | '/settings/display'
@@ -499,6 +510,7 @@ export interface FileRouteTypes {
     | '/errors/$error'
     | '/products/$productId'
     | '/settings/account'
+    | '/settings/agent'
     | '/settings/api-keys'
     | '/settings/appearance'
     | '/settings/display'
@@ -546,6 +558,7 @@ export interface FileRouteTypes {
     | '/_authenticated/errors/$error'
     | '/_authenticated/products/$productId'
     | '/_authenticated/settings/account'
+    | '/_authenticated/settings/agent'
     | '/_authenticated/settings/api-keys'
     | '/_authenticated/settings/appearance'
     | '/_authenticated/settings/display'
@@ -787,6 +800,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsAccountRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteRoute
     }
+    '/_authenticated/settings/agent': {
+      id: '/_authenticated/settings/agent'
+      path: '/agent'
+      fullPath: '/settings/agent'
+      preLoaderRoute: typeof AuthenticatedSettingsAgentRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
     '/_authenticated/settings/api-keys': {
       id: '/_authenticated/settings/api-keys'
       path: '/api-keys'
@@ -911,6 +931,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedSettingsRouteRouteChildren {
   AuthenticatedSettingsAccountRoute: typeof AuthenticatedSettingsAccountRoute
+  AuthenticatedSettingsAgentRoute: typeof AuthenticatedSettingsAgentRoute
   AuthenticatedSettingsApiKeysRoute: typeof AuthenticatedSettingsApiKeysRoute
   AuthenticatedSettingsAppearanceRoute: typeof AuthenticatedSettingsAppearanceRoute
   AuthenticatedSettingsDisplayRoute: typeof AuthenticatedSettingsDisplayRoute
@@ -925,6 +946,7 @@ interface AuthenticatedSettingsRouteRouteChildren {
 const AuthenticatedSettingsRouteRouteChildren: AuthenticatedSettingsRouteRouteChildren =
   {
     AuthenticatedSettingsAccountRoute: AuthenticatedSettingsAccountRoute,
+    AuthenticatedSettingsAgentRoute: AuthenticatedSettingsAgentRoute,
     AuthenticatedSettingsApiKeysRoute: AuthenticatedSettingsApiKeysRoute,
     AuthenticatedSettingsAppearanceRoute: AuthenticatedSettingsAppearanceRoute,
     AuthenticatedSettingsDisplayRoute: AuthenticatedSettingsDisplayRoute,

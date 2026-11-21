@@ -192,9 +192,9 @@ export function ProvidersSettings() {
   const hasAnyResults = filteredConnected.length > 0 || filteredPopular.length > 0
 
   return (
-    <div className='w-full space-y-7 pb-12'>
+    <div className='w-full space-y-6 pb-12'>
       {/* Page Title & Top Action Toolbar */}
-      <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-border/50 pb-5'>
+      <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-border/50 pb-4'>
         <div>
           <h2 className='text-xl font-bold tracking-tight'>
             {t('modelProvider.aiProvidersTitle', 'AI Model Providers')}
@@ -353,7 +353,7 @@ export function ProvidersSettings() {
             </Badge>
           </div>
 
-          <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4'>
+          <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3'>
             {filteredConnected.map((provider) => {
               const creds = credentialsByIntegration.get(provider.id) || []
               return (
@@ -387,7 +387,7 @@ export function ProvidersSettings() {
             </span>
           </div>
 
-          <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4'>
+          <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3'>
             {filteredPopular.map((provider) => {
               const creds = credentialsByIntegration.get(provider.id) || []
               return (
@@ -404,9 +404,9 @@ export function ProvidersSettings() {
             {!query && (
               <Card
                 onClick={() => setAllProvidersDialogOpen(true)}
-                className='group flex flex-row items-center justify-center p-6 border-dashed border-border/80 hover:border-primary/50 hover:bg-muted/30 transition-all cursor-pointer text-left'
+                className='group flex flex-row items-center justify-center p-2.5 border-dashed border-border/80 hover:border-primary/50 hover:bg-muted/30 transition-all cursor-pointer text-left'
               >
-                <div className='flex h-10 w-10 items-center justify-center rounded-full border border-dashed border-border group-hover:border-primary/60 group-hover:bg-primary/10 transition-colors mb-2'>
+                <div className='flex h-10 w-10 items-center justify-center rounded-full border border-dashed border-border group-hover:border-primary/60 group-hover:bg-primary/10 transition-colors'>
                   <Plus className='h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors' />
                 </div>
                 <span className='text-xs font-semibold text-foreground group-hover:text-primary transition-colors'>
