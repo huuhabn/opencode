@@ -77,18 +77,28 @@ function partText(part: ContentPart) {
   return ''
 }
 
-type HeadlineKind = 'working' | 'thinking' | 'executing' | 'worked' | 'thought' | 'executed' | 'failed'
+type HeadlineKind =
+  | 'working'
+  | 'thinking'
+  | 'executing'
+  | 'retrying'
+  | 'worked'
+  | 'thought'
+  | 'executed'
+  | 'failed'
 
 function deriveHeadline(input: {
   live: boolean
   finished: boolean
-  hasError: boolean
+  failed: boolean
+  retrying: boolean
   hasReasoning: boolean
   hasTools: boolean
   hasText: boolean
   toolsRunning: boolean
 }): { kind: HeadlineKind; live: boolean } {
-  if (input.hasError) return { kind: 'failed', live: false }
+  if (input.failed) return { kind: 'failed', live: false }
+  if (input.retrying) return { kind: 'retrying', live: true }
   if (input.live && !input.finished) {
     if (input.toolsRunning || (input.hasTools && !input.hasText && !input.hasReasoning)) {
       return { kind: 'executing', live: true }
@@ -216,12 +226,13 @@ function AssistantMessage({
   const { t } = useTranslation(['model-provider', 'common'])
   const [copied, setCopied] = useState(false)
 
-  const hasError = Boolean(message.error || message.retry?.error)
+  const failed = Boolean(message.error)
+  const retrying = Boolean(message.retry) && !failed
   const errorMessage =
     formatErrorText(message.error) || formatErrorText(message.retry?.error)
 
   const contents = Array.isArray(message.content) ? message.content : []
-  const finished = isAssistantFinished(message) || hasError
+  const finished = isAssistantFinished(message)
 
   const parts = useMemo(() => {
     const reasoning: ContentPart[] = []
@@ -250,7 +261,8 @@ function AssistantMessage({
   const headline = deriveHeadline({
     live: isLive,
     finished,
-    hasError,
+    failed,
+    retrying,
     hasReasoning: parts.reasoning.length > 0,
     hasTools: parts.tools.length > 0,
     hasText: parts.texts.length > 0,
@@ -262,17 +274,18 @@ function AssistantMessage({
 
   useEffect(() => {
     if (isLive && expandable) setActivityOpen(true)
-    if (finished && expandable) setActivityOpen(false)
-  }, [isLive, finished, expandable])
+    if ((finished || failed) && expandable) setActivityOpen(false)
+  }, [isLive, finished, failed, expandable])
 
   const headlineLabel = {
     working: t('session.timeline.working', 'Working'),
     thinking: t('session.timeline.thinking', 'Thinking'),
     executing: t('session.timeline.executing', 'Executing'),
+    retrying: t('session.timeline.retrying', 'Retrying'),
     worked: t('session.timeline.worked', 'Worked'),
     thought: t('session.timeline.thought', 'Thought'),
     executed: t('session.timeline.executed', 'Executed'),
-    failed: t('session.errorTitle', 'Generation Failed'),
+    failed: t('session.timeline.failed', 'Failed'),
   }[headline.kind]
 
   const fullAssistantText = parts.texts.join('\n\n')
@@ -351,14 +364,13 @@ function AssistantMessage({
           </div>
         )}
 
-        {hasError && (
+        {(failed || retrying) && (
           <div className='w-full min-w-0 rounded-xl border border-destructive/30 bg-destructive/5 p-3 space-y-2 animate-in fade-in duration-200'>
-            <div className='flex items-center gap-2 min-w-0'>
-              <AlertTriangle className='h-4 w-4 shrink-0 text-destructive' />
-              <span className='min-w-0 flex-1 font-semibold text-xs text-destructive truncate'>
-                {t('session.errorTitle', 'Generation Failed')}
-              </span>
-              {onRetry && retryText && (
+            <div className='flex items-start gap-2 min-w-0'>
+              <p className='min-w-0 flex-1 text-[12px] leading-relaxed text-muted-foreground whitespace-pre-wrap break-words'>
+                {errorMessage || t('common.error', 'An error occurred during agent execution.')}
+              </p>
+              {failed && onRetry && retryText && (
                 <Button
                   type='button'
                   variant='outline'
@@ -371,9 +383,13 @@ function AssistantMessage({
                 </Button>
               )}
             </div>
-            <p className='text-[12px] leading-relaxed text-muted-foreground whitespace-pre-wrap break-words'>
-              {errorMessage || t('common.error', 'An error occurred during agent execution.')}
-            </p>
+            {retrying && message.retry && (
+              <p className='text-[11px] text-muted-foreground/80 animate-pulse'>
+                {t('session.timeline.retryAttempt', 'Attempt {{attempt}} — retrying', {
+                  attempt: message.retry.attempt,
+                })}
+              </p>
+            )}
           </div>
         )}
 
@@ -395,6 +411,7 @@ function AssistantMessage({
 }
 
 function HeadlineIcon({ kind, live }: { kind: HeadlineKind; live: boolean }) {
+  if (kind === 'retrying') return <RotateCcw className='h-3.5 w-3.5 text-amber-500 animate-spin' />
   if (live) {
     if (kind === 'thinking') return <BrainCircuit className='h-3.5 w-3.5 text-amber-500 animate-pulse' />
     if (kind === 'executing') return <Wrench className='h-3.5 w-3.5 text-primary animate-pulse' />

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Bot, Terminal, Code2, Loader2, Square, ArrowDown } from 'lucide-react'
+import { Bot, Terminal, Code2, Loader2, ArrowDown } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { TimelineMessage } from './timeline-message'
@@ -12,7 +12,6 @@ interface SessionTimelineProps {
   isStreaming?: boolean
   onQuickPrompt?: (prompt: string) => void
   onRetry?: (text: string) => void
-  onInterrupt?: () => void
 }
 
 export function SessionTimeline({
@@ -21,7 +20,6 @@ export function SessionTimeline({
   isStreaming,
   onQuickPrompt,
   onRetry,
-  onInterrupt,
 }: SessionTimelineProps) {
   const { t } = useTranslation(['model-provider', 'common'])
   const containerRef = useRef<HTMLDivElement>(null)
@@ -168,18 +166,6 @@ export function SessionTimeline({
           <span className='font-mono text-[11px] text-muted-foreground/70 tabular-nums'>
             {elapsedSeconds}s
           </span>
-          {onInterrupt && (
-            <Button
-              type='button'
-              variant='ghost'
-              size='sm'
-              onClick={onInterrupt}
-              className='h-6 px-2 text-[11px] text-muted-foreground hover:text-destructive ml-auto gap-1'
-            >
-              <Square className='h-2.5 w-2.5 fill-current' />
-              <span>{t('session.stop', 'Stop')}</span>
-            </Button>
-          )}
         </div>
       )}
 

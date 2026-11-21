@@ -255,7 +255,6 @@ export function SessionFeature({ sessionId }: SessionFeatureProps) {
               isStreaming={isStreaming}
               onQuickPrompt={(p) => setQuickPrompt(p)}
               onRetry={(text) => handleSend(text)}
-              onInterrupt={handleInterrupt}
             />
 
             <SessionComposer

@@ -88,7 +88,7 @@ export function assistantHasVisibleContent(message: SessionMessageAssistant | un
  * packages/app showWorking / StatusLane:
  * - only while the session is busy
  * - hide once this turn has text, tools, or live reasoning (reasoning stands in for Working)
- * - hide when the assistant is finished or errored
+ * - hide when the assistant is finished, errored, or auto-retrying (Retrying headline stands in)
  */
 export function shouldShowWorkingStatus(isBusy: boolean, messages: SessionMessageInfo[]) {
   if (!isBusy) return false
@@ -96,6 +96,7 @@ export function shouldShowWorkingStatus(isBusy: boolean, messages: SessionMessag
   const assistant = latestTurnAssistant(messages)
   if (!assistant) return true
   if (isAssistantFinished(assistant)) return false
+  if (assistant.retry) return false
   if (assistantHasVisibleContent(assistant)) return false
 
   return true
