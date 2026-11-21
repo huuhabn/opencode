@@ -42,14 +42,22 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { useModels, useDefaultModel } from '@/features/settings/models/api'
-import { useAgentsList, useSkillsList, type SessionInfo, type AgentItem, type SkillItem } from '../api'
+import { formatTokens } from '@/features/settings/models/format-tokens'
+import {
+  useAgentsList,
+  useSkillsList,
+  type SessionInfo,
+  type AgentItem,
+  type SkillItem,
+  type ComposerModelRef,
+} from '../api'
 
 const STORAGE_MODEL_KEY = 'opencode_selected_model'
 const STORAGE_VARIANT_KEY = 'opencode_selected_variant'
 
 interface SessionComposerProps {
   session?: SessionInfo | null
-  onSend: (text: string, model?: { id: string; providerID: string }, agent?: string) => void
+  onSend: (text: string, model?: ComposerModelRef, agent?: string) => void
   onInterrupt?: () => void
   isStreaming?: boolean
   disabled?: boolean
@@ -97,33 +105,34 @@ export function SessionComposer({
   const { data: agents = [] } = useAgentsList()
   const { data: skills = [] } = useSkillsList()
 
-  // Initialize selected model from session, or saved localStorage, or defaultModel
+  const sessionModelKey = !session?.model
+    ? ''
+    : typeof session.model === 'string'
+      ? session.model
+      : `${session.model.providerID}/${session.model.id}/${session.model.variant ?? ''}`
+
+  // Sync model/variant from session when the session record changes (not on every local selection).
   useEffect(() => {
-    // 1. If current session already has a model set, respect it
-    if (session?.model) {
-      const modelId = typeof session.model === 'string' ? session.model : (session.model as { id?: string }).id
-      if (modelId) {
-        setSelectedModelId(modelId)
-        return
-      }
-    }
+    if (!sessionModelKey || !session?.model) return
+    const modelRef = typeof session.model === 'string' ? null : session.model
+    const modelId = typeof session.model === 'string' ? session.model : modelRef?.id
+    if (modelId) setSelectedModelId(modelId)
+    if (modelRef?.variant) setSelectedVariant(modelRef.variant)
+  }, [sessionModelKey, session])
 
-    // 2. If user previously chose a model in localStorage, keep it
-    if (typeof localStorage !== 'undefined') {
-      const saved = localStorage.getItem(STORAGE_MODEL_KEY)
-      if (saved && models.some((m) => m.id === saved)) {
-        setSelectedModelId(saved)
-        return
+  // Initialize from localStorage / default only when nothing is selected yet.
+  useEffect(() => {
+    setSelectedModelId((prev) => {
+      if (prev) return prev
+      if (typeof localStorage !== 'undefined') {
+        const saved = localStorage.getItem(STORAGE_MODEL_KEY)
+        if (saved && models.some((m) => m.id === saved)) return saved
       }
-    }
-
-    // 3. Fallback to default model or first available model
-    if (!selectedModelId && defaultModel?.id) {
-      setSelectedModelId(defaultModel.id)
-    } else if (!selectedModelId && models.length > 0) {
-      setSelectedModelId(models[0].id)
-    }
-  }, [session?.model, defaultModel, models, selectedModelId])
+      if (defaultModel?.id) return defaultModel.id
+      if (models.length > 0) return models[0].id
+      return prev
+    })
+  }, [defaultModel, models])
 
   // Initialize variant from localStorage if saved
   useEffect(() => {
@@ -156,12 +165,25 @@ export function SessionComposer({
   }
 
   // Model-specific variants if available, or standard default variants
-  const availableVariants = (() => {
+  const availableVariants = useMemo(() => {
     if (currentModel?.variants && currentModel.variants.length > 0) {
-      return currentModel.variants.map((v: any) => v.id || v.name || String(v))
+      return currentModel.variants.map((v: { id?: string; name?: string } | string) =>
+        typeof v === 'string' ? v : v.id || v.name || String(v)
+      )
     }
     return ['none', 'low', 'medium', 'high']
-  })()
+  }, [currentModel])
+
+  // Drop a stale variant when the selected model no longer supports it
+  useEffect(() => {
+    if (availableVariants.length === 0) return
+    if (availableVariants.includes(selectedVariant)) return
+    const next = availableVariants.includes('medium') ? 'medium' : availableVariants[0]
+    setSelectedVariant(next)
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(STORAGE_VARIANT_KEY, next)
+    }
+  }, [availableVariants, selectedVariant])
 
   // Group models by provider with search filtering
   const groupedModels = useMemo(() => {
@@ -278,8 +300,10 @@ export function SessionComposer({
     if (!trimmed || isStreaming || disabled) return
 
     const matchedModel = currentModel
-    const modelParam = matchedModel
-      ? { id: matchedModel.id, providerID: matchedModel.providerID }
+    const variant =
+      selectedVariant === 'none' || selectedVariant === 'default' ? undefined : selectedVariant
+    const modelParam: ComposerModelRef | undefined = matchedModel
+      ? { id: matchedModel.id, providerID: matchedModel.providerID, variant }
       : undefined
 
     let fullText = trimmed
@@ -406,11 +430,17 @@ export function SessionComposer({
         toast.info(t('session.voiceListening', 'Listening...'))
       }
 
-      recognition.onresult = (event: any) => {
-        const transcript = Array.from(event.results)
-          .map((result: any) => result[0].transcript)
-          .join('')
-        setPrompt((prev) => (prev ? `${prev} ${transcript}` : transcript))
+      recognition.onresult = (event: {
+        resultIndex: number
+        results: ArrayLike<{ isFinal: boolean; 0: { transcript: string } }>
+      }) => {
+        let chunk = ''
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (!event.results[i].isFinal) continue
+          chunk += event.results[i][0].transcript
+        }
+        if (!chunk) return
+        setPrompt((prev) => (prev ? `${prev} ${chunk}` : chunk))
       }
 
       recognition.onerror = () => {
@@ -493,7 +523,7 @@ export function SessionComposer({
     (tokens?.reasoning ?? 0)
   const contextLimit = currentModel?.limit?.context ?? 128_000
   const tokenUsagePercent =
-    totalTokens === 0 ? 6 : Math.min(Math.round((totalTokens / contextLimit) * 100), 100)
+    totalTokens === 0 ? 0 : Math.min(Math.round((totalTokens / contextLimit) * 100), 100)
 
   return (
     <div className='p-3 sm:p-5 flex flex-col items-center bg-transparent select-text w-full max-w-4xl mx-auto shrink-0 relative'>
@@ -692,7 +722,7 @@ export function SessionComposer({
                 <button
                   type='button'
                   disabled={disabled || isStreaming}
-                  className='flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground px-2 py-1 rounded-md hover:bg-muted/60 transition-colors font-medium border border-border/40'
+                  className='flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded-md hover:bg-muted/60 transition-colors font-medium border border-border/40'
                   title='Choose Agent'
                 >
                   <Bot className='h-3 w-3 text-primary shrink-0' />
@@ -785,6 +815,9 @@ export function SessionComposer({
                                 <span className='truncate text-xs'>{m.name || m.id}</span>
                                 <span className='text-[10px] font-mono text-muted-foreground/70 truncate'>
                                   {m.id}
+                                  {m.limit?.context
+                                    ? ` · ${formatTokens(m.limit.context)}`
+                                    : ''}
                                 </span>
                               </div>
                               {isSelected && <Check className='h-3.5 w-3.5 text-primary shrink-0' />}
@@ -805,7 +838,7 @@ export function SessionComposer({
                   <button
                     type='button'
                     disabled={disabled || isStreaming}
-                    className='flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground px-1.5 py-1 rounded-md hover:bg-muted/60 transition-colors capitalize'
+                    className='flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-1.5 py-1 rounded-md hover:bg-muted/60 transition-colors capitalize'
                     title='Reasoning Variant'
                   >
                     <Sparkles className='h-3 w-3 text-amber-500 shrink-0' />

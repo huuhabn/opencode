@@ -83,7 +83,7 @@ export function SessionFeature({ sessionId }: SessionFeatureProps) {
 
   const handleSend = async (
     text: string,
-    model?: { id: string; providerID: string },
+    model?: { id: string; providerID: string; variant?: string },
     agent?: string
   ) => {
     let currentId = sessionId
@@ -103,7 +103,7 @@ export function SessionFeature({ sessionId }: SessionFeatureProps) {
         navigate({ to: '/session/$sessionId', params: { sessionId: currentId } })
       }
 
-      // 2. Send prompt to session
+      // 2. Send prompt to session (applies agent/model/variant via switch APIs when needed)
       await sendPromptMutation.mutateAsync({
         sessionID: currentId,
         text,

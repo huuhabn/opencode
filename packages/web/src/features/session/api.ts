@@ -111,6 +111,8 @@ export function useAgentsList() {
   })
 }
 
+export type ComposerModelRef = { id: string; providerID: string; variant?: string }
+
 export function useCreateSession() {
   const queryClient = useQueryClient()
   return useMutation({
@@ -119,7 +121,7 @@ export function useCreateSession() {
       projectID?: string
       directory?: string
       agent?: string
-      model?: { id: string; providerID: string }
+      model?: ComposerModelRef
     }) => {
       let dir = params?.directory
       if (!dir) {
@@ -212,24 +214,60 @@ export function useSendPrompt() {
       sessionID: string
       text: string
       agent?: string
-      model?: { id: string; providerID: string }
+      model?: ComposerModelRef
     }) => {
-      // Direct session prompt with model and agent in metadata matching packages/app submit.ts.
-      // We do NOT call switchModel or switchAgent unconditionally, which would pollute
-      // the timeline with repetitive 'agent-switched' / 'model-switched' events.
+      // Mirror packages/app applySelection: switch only when agent/model/variant changed,
+      // then admit the prompt. Core execution reads session.agent / session.model.
+      const currentRes = await agentPlatformClient.session.get({ sessionID })
+      const current = (
+        currentRes && 'data' in currentRes ? (currentRes as { data: SessionInfo }).data : currentRes
+      ) as SessionInfo | null
+
+      if (agent && current?.agent !== agent) {
+        await agentPlatformClient.session.switchAgent({ sessionID, agent })
+      }
+
+      if (model) {
+        const next = `${model.providerID}/${model.id}/${model.variant ?? ''}`
+        const saved =
+          current?.model &&
+          `${current.model.providerID}/${current.model.id}/${current.model.variant ?? ''}`
+        const agentUnchanged = !agent || current?.agent === agent
+
+        if (!agentUnchanged || saved !== next || current?.revert) {
+          await agentPlatformClient.session.switchModel({
+            sessionID,
+            model: {
+              id: model.id,
+              providerID: model.providerID,
+              variant: model.variant,
+            },
+          })
+        }
+      }
+
       const res = await agentPlatformClient.session.prompt({
         sessionID,
         text,
         delivery: 'steer',
         metadata: {
           ...(agent ? { agent } : {}),
-          ...(model ? { model } : {}),
+          ...(model
+            ? {
+                model: {
+                  modelID: model.id,
+                  providerID: model.providerID,
+                  ...(model.variant ? { variant: model.variant } : {}),
+                },
+              }
+            : {}),
         },
       })
       return res
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: sessionQueryKeys.messages(variables.sessionID) })
+      queryClient.invalidateQueries({ queryKey: sessionQueryKeys.detail(variables.sessionID) })
       queryClient.invalidateQueries({ queryKey: sessionQueryKeys.list() })
     },
   })

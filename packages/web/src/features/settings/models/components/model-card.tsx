@@ -4,6 +4,7 @@ import type { ModelInfo } from '@opencode/client'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ProviderIcon } from '../../providers/components/provider-icon'
+import { formatTokens } from '../format-tokens'
 
 interface ModelCardProps {
   model: ModelInfo
@@ -13,27 +14,6 @@ interface ModelCardProps {
 export function ModelCard({ model, isDefault }: ModelCardProps) {
   const { t } = useTranslation(['model-provider', 'common'])
 
-  const formatTokens = (count?: number): string => {
-    if (!count) return t('modelProvider.tokensStandard', 'Standard')
-    if (count >= 1_000_000) {
-      const val = (count / 1_000_000).toFixed(0)
-      return t('modelProvider.tokensM', {
-        count: val,
-        defaultValue: `${val}M tokens`,
-      })
-    }
-    if (count >= 1_000) {
-      const val = Math.round(count / 1_000)
-      return t('modelProvider.tokensK', {
-        count: val,
-        defaultValue: `${val}k tokens`,
-      })
-    }
-    return t('modelProvider.tokensCount', {
-      count,
-      defaultValue: `${count} tokens`,
-    })
-  }
   const hasVision = model.capabilities?.input?.includes('image')
   const hasTools = Boolean(model.capabilities?.tools)
   const hasReasoning = (model.variants?.length ?? 0) > 0

@@ -29,11 +29,11 @@ export function getServerConfig(): ServerConfig {
     serverUrl = `http://${serverUrl}`
   }
 
+  // Prefer an explicitly saved password (including empty) over env; never ship a baked-in secret.
   const serverPassword =
-    (storedPass !== null
-      ? storedPass
-      : (import.meta.env.VITE_OPENCODE_SERVER_PASSWORD as string | undefined)
-    )?.trim() || 'y6BBma_nwnkw9WVkiC0mBpfJKfrCHCA2KKul-mUM70c'
+    storedPass !== null
+      ? storedPass.trim()
+      : (import.meta.env.VITE_OPENCODE_SERVER_PASSWORD as string | undefined)?.trim() || ''
 
   return { serverUrl, serverPassword }
 }
