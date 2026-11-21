@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
-import { Outlet, useLocation } from '@tanstack/react-router'
+import { useMemo, useEffect } from 'react'
+import { Outlet, useLocation, useNavigate } from '@tanstack/react-router'
 import {
   Monitor,
   Bell,
@@ -9,6 +9,8 @@ import {
   Key,
   Webhook,
   ShieldCheck,
+  FolderGit2,
+  FolderKanban,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Separator } from '@/components/ui/separator'
@@ -24,7 +26,19 @@ import { AiSettingsLayout } from './components/ai-settings-layout'
 
 export function Settings() {
   const { t } = useTranslation(['model-provider', 'common'])
-  const { pathname } = useLocation()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { pathname } = location
+
+  useEffect(() => {
+    const searchObj = (location.search || {}) as Record<string, unknown>
+    const tab = typeof searchObj.tab === 'string' ? searchObj.tab : undefined
+    if (tab === 'workspaces') {
+      navigate({ to: '/settings/workspaces', replace: true })
+    } else if (tab === 'projects') {
+      navigate({ to: '/settings/projects', replace: true })
+    }
+  }, [location.search, navigate])
 
   // Use dedicated AI Engine layout for Providers, Models, and Agent with independent scroll panes
   if (
@@ -38,6 +52,22 @@ export function Settings() {
   const sidebarNavGroups: NavGroup[] = useMemo(
     () => [
       {
+        title: t('modelProvider.agentPlatform', 'Agent Platform'),
+        items: [
+          {
+            title: t('settings.workspaces.title', 'Workspaces'),
+            href: '/settings/workspaces',
+            icon: <FolderGit2 size={18} />,
+          },
+          {
+            title: t('settings.projects.title', 'Projects'),
+            href: '/settings/projects',
+            icon: <FolderKanban size={18} />,
+          },
+        ],
+      },
+      {
+        title: t('modelProvider.generalSettings', 'General'),
         items: [
           {
             title: t('modelProvider.profile', 'Profile'),

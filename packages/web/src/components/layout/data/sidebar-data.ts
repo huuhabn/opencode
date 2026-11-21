@@ -33,6 +33,9 @@ import {
   Compass,
   Cpu,
   Sparkles,
+  Bot,
+  FolderGit2,
+  FolderKanban,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ClerkLogo } from '@/assets/clerk-logo'
@@ -163,6 +166,14 @@ export function useSidebarData(): SidebarData {
           }),
           items: [
             {
+              title: t('session.title', {
+                ns: 'model-provider',
+                defaultValue: 'AI Agent Chat',
+              }),
+              url: '/session',
+              icon: Bot,
+            },
+            {
               title: t('modelProvider.aiProviders', 'AI Providers'),
               url: '/settings/providers',
               icon: Cpu,
@@ -171,6 +182,22 @@ export function useSidebarData(): SidebarData {
               title: t('modelProvider.aiModels', 'AI Models'),
               url: '/settings/models',
               icon: Sparkles,
+            },
+            {
+              title: t('settings.workspaces.title', {
+                ns: 'model-provider',
+                defaultValue: 'Workspaces',
+              }),
+              url: '/settings/workspaces',
+              icon: FolderGit2,
+            },
+            {
+              title: t('settings.projects.title', {
+                ns: 'model-provider',
+                defaultValue: 'Projects',
+              }),
+              url: '/settings/projects',
+              icon: FolderKanban,
             },
             {
               title: t('Auth', 'Auth'),
@@ -304,6 +331,22 @@ export function useSidebarData(): SidebarData {
                   }),
                   url: '/settings/display',
                   icon: Monitor,
+                },
+                {
+                  title: t('settings.workspaces.title', {
+                    ns: 'model-provider',
+                    defaultValue: 'Workspaces',
+                  }),
+                  url: '/settings/workspaces',
+                  icon: FolderGit2,
+                },
+                {
+                  title: t('settings.projects.title', {
+                    ns: 'model-provider',
+                    defaultValue: 'Projects',
+                  }),
+                  url: '/settings/projects',
+                  icon: FolderKanban,
                 },
               ],
             },

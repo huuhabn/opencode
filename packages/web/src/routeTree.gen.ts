@@ -35,6 +35,8 @@ import { Route as AuthenticatedNotificationsIndexRouteImport } from './routes/_a
 import { Route as AuthenticatedProductsIndexRouteImport } from './routes/_authenticated/products/index'
 import { Route as AuthenticatedProductsProductIdRouteImport } from './routes/_authenticated/products/$productId'
 import { Route as AuthenticatedReactQueryIndexRouteImport } from './routes/_authenticated/react-query/index'
+import { Route as AuthenticatedSessionIndexRouteImport } from './routes/_authenticated/session/index'
+import { Route as AuthenticatedSessionSessionIdRouteImport } from './routes/_authenticated/session/$sessionId'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
 import { Route as AuthenticatedSettingsAgentRouteImport } from './routes/_authenticated/settings/agent'
@@ -43,9 +45,11 @@ import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_a
 import { Route as AuthenticatedSettingsDisplayRouteImport } from './routes/_authenticated/settings/display'
 import { Route as AuthenticatedSettingsModelsRouteImport } from './routes/_authenticated/settings/models'
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings/notifications'
+import { Route as AuthenticatedSettingsProjectsRouteImport } from './routes/_authenticated/settings/projects'
 import { Route as AuthenticatedSettingsProvidersRouteImport } from './routes/_authenticated/settings/providers'
 import { Route as AuthenticatedSettingsSecurityRouteImport } from './routes/_authenticated/settings/security'
 import { Route as AuthenticatedSettingsWebhooksRouteImport } from './routes/_authenticated/settings/webhooks'
+import { Route as AuthenticatedSettingsWorkspacesRouteImport } from './routes/_authenticated/settings/workspaces'
 import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks/index'
 import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index'
 import { Route as AuthenticatedWorkspacesIndexRouteImport } from './routes/_authenticated/workspaces/index'
@@ -191,6 +195,18 @@ const AuthenticatedReactQueryIndexRoute =
     path: '/react-query/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSessionIndexRoute =
+  AuthenticatedSessionIndexRouteImport.update({
+    id: '/session/',
+    path: '/session/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSessionSessionIdRoute =
+  AuthenticatedSessionSessionIdRouteImport.update({
+    id: '/session/$sessionId',
+    path: '/session/$sessionId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSettingsIndexRoute =
   AuthenticatedSettingsIndexRouteImport.update({
     id: '/',
@@ -239,6 +255,12 @@ const AuthenticatedSettingsNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
   } as any)
+const AuthenticatedSettingsProjectsRoute =
+  AuthenticatedSettingsProjectsRouteImport.update({
+    id: '/projects',
+    path: '/projects',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
 const AuthenticatedSettingsProvidersRoute =
   AuthenticatedSettingsProvidersRouteImport.update({
     id: '/providers',
@@ -255,6 +277,12 @@ const AuthenticatedSettingsWebhooksRoute =
   AuthenticatedSettingsWebhooksRouteImport.update({
     id: '/webhooks',
     path: '/webhooks',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
+const AuthenticatedSettingsWorkspacesRoute =
+  AuthenticatedSettingsWorkspacesRouteImport.update({
+    id: '/workspaces',
+    path: '/workspaces',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
   } as any)
 const AuthenticatedTasksIndexRoute = AuthenticatedTasksIndexRouteImport.update({
@@ -325,6 +353,7 @@ export interface FileRoutesByFullPath {
   '/503': typeof errors503Route
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/products/$productId': typeof AuthenticatedProductsProductIdRoute
+  '/session/$sessionId': typeof AuthenticatedSessionSessionIdRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/agent': typeof AuthenticatedSettingsAgentRoute
   '/settings/api-keys': typeof AuthenticatedSettingsApiKeysRoute
@@ -332,9 +361,11 @@ export interface FileRoutesByFullPath {
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/models': typeof AuthenticatedSettingsModelsRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/settings/projects': typeof AuthenticatedSettingsProjectsRoute
   '/settings/providers': typeof AuthenticatedSettingsProvidersRoute
   '/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/settings/webhooks': typeof AuthenticatedSettingsWebhooksRoute
+  '/settings/workspaces': typeof AuthenticatedSettingsWorkspacesRoute
   '/workspaces/activity': typeof AuthenticatedWorkspacesActivityRoute
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
@@ -346,6 +377,7 @@ export interface FileRoutesByFullPath {
   '/notifications/': typeof AuthenticatedNotificationsIndexRoute
   '/products/': typeof AuthenticatedProductsIndexRoute
   '/react-query/': typeof AuthenticatedReactQueryIndexRoute
+  '/session/': typeof AuthenticatedSessionIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/tasks/': typeof AuthenticatedTasksIndexRoute
   '/users/': typeof AuthenticatedUsersIndexRoute
@@ -369,6 +401,7 @@ export interface FileRoutesByTo {
   '/': typeof AuthenticatedIndexRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/products/$productId': typeof AuthenticatedProductsProductIdRoute
+  '/session/$sessionId': typeof AuthenticatedSessionSessionIdRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/agent': typeof AuthenticatedSettingsAgentRoute
   '/settings/api-keys': typeof AuthenticatedSettingsApiKeysRoute
@@ -376,9 +409,11 @@ export interface FileRoutesByTo {
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/models': typeof AuthenticatedSettingsModelsRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/settings/projects': typeof AuthenticatedSettingsProjectsRoute
   '/settings/providers': typeof AuthenticatedSettingsProvidersRoute
   '/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/settings/webhooks': typeof AuthenticatedSettingsWebhooksRoute
+  '/settings/workspaces': typeof AuthenticatedSettingsWorkspacesRoute
   '/workspaces/activity': typeof AuthenticatedWorkspacesActivityRoute
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
@@ -390,6 +425,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof AuthenticatedNotificationsIndexRoute
   '/products': typeof AuthenticatedProductsIndexRoute
   '/react-query': typeof AuthenticatedReactQueryIndexRoute
+  '/session': typeof AuthenticatedSessionIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
@@ -418,6 +454,7 @@ export interface FileRoutesById {
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/_authenticated/products/$productId': typeof AuthenticatedProductsProductIdRoute
+  '/_authenticated/session/$sessionId': typeof AuthenticatedSessionSessionIdRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/_authenticated/settings/agent': typeof AuthenticatedSettingsAgentRoute
   '/_authenticated/settings/api-keys': typeof AuthenticatedSettingsApiKeysRoute
@@ -425,9 +462,11 @@ export interface FileRoutesById {
   '/_authenticated/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/_authenticated/settings/models': typeof AuthenticatedSettingsModelsRoute
   '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/_authenticated/settings/projects': typeof AuthenticatedSettingsProjectsRoute
   '/_authenticated/settings/providers': typeof AuthenticatedSettingsProvidersRoute
   '/_authenticated/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/_authenticated/settings/webhooks': typeof AuthenticatedSettingsWebhooksRoute
+  '/_authenticated/settings/workspaces': typeof AuthenticatedSettingsWorkspacesRoute
   '/_authenticated/workspaces/activity': typeof AuthenticatedWorkspacesActivityRoute
   '/clerk/(auth)/sign-in': typeof ClerkauthSignInRoute
   '/clerk/(auth)/sign-up': typeof ClerkauthSignUpRoute
@@ -439,6 +478,7 @@ export interface FileRoutesById {
   '/_authenticated/notifications/': typeof AuthenticatedNotificationsIndexRoute
   '/_authenticated/products/': typeof AuthenticatedProductsIndexRoute
   '/_authenticated/react-query/': typeof AuthenticatedReactQueryIndexRoute
+  '/_authenticated/session/': typeof AuthenticatedSessionIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
@@ -465,6 +505,7 @@ export interface FileRouteTypes {
     | '/503'
     | '/errors/$error'
     | '/products/$productId'
+    | '/session/$sessionId'
     | '/settings/account'
     | '/settings/agent'
     | '/settings/api-keys'
@@ -472,9 +513,11 @@ export interface FileRouteTypes {
     | '/settings/display'
     | '/settings/models'
     | '/settings/notifications'
+    | '/settings/projects'
     | '/settings/providers'
     | '/settings/security'
     | '/settings/webhooks'
+    | '/settings/workspaces'
     | '/workspaces/activity'
     | '/clerk/sign-in'
     | '/clerk/sign-up'
@@ -486,6 +529,7 @@ export interface FileRouteTypes {
     | '/notifications/'
     | '/products/'
     | '/react-query/'
+    | '/session/'
     | '/settings/'
     | '/tasks/'
     | '/users/'
@@ -509,6 +553,7 @@ export interface FileRouteTypes {
     | '/'
     | '/errors/$error'
     | '/products/$productId'
+    | '/session/$sessionId'
     | '/settings/account'
     | '/settings/agent'
     | '/settings/api-keys'
@@ -516,9 +561,11 @@ export interface FileRouteTypes {
     | '/settings/display'
     | '/settings/models'
     | '/settings/notifications'
+    | '/settings/projects'
     | '/settings/providers'
     | '/settings/security'
     | '/settings/webhooks'
+    | '/settings/workspaces'
     | '/workspaces/activity'
     | '/clerk/sign-in'
     | '/clerk/sign-up'
@@ -530,6 +577,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/products'
     | '/react-query'
+    | '/session'
     | '/settings'
     | '/tasks'
     | '/users'
@@ -557,6 +605,7 @@ export interface FileRouteTypes {
     | '/_authenticated/'
     | '/_authenticated/errors/$error'
     | '/_authenticated/products/$productId'
+    | '/_authenticated/session/$sessionId'
     | '/_authenticated/settings/account'
     | '/_authenticated/settings/agent'
     | '/_authenticated/settings/api-keys'
@@ -564,9 +613,11 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/display'
     | '/_authenticated/settings/models'
     | '/_authenticated/settings/notifications'
+    | '/_authenticated/settings/projects'
     | '/_authenticated/settings/providers'
     | '/_authenticated/settings/security'
     | '/_authenticated/settings/webhooks'
+    | '/_authenticated/settings/workspaces'
     | '/_authenticated/workspaces/activity'
     | '/clerk/(auth)/sign-in'
     | '/clerk/(auth)/sign-up'
@@ -578,6 +629,7 @@ export interface FileRouteTypes {
     | '/_authenticated/notifications/'
     | '/_authenticated/products/'
     | '/_authenticated/react-query/'
+    | '/_authenticated/session/'
     | '/_authenticated/settings/'
     | '/_authenticated/tasks/'
     | '/_authenticated/users/'
@@ -786,6 +838,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReactQueryIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/session/': {
+      id: '/_authenticated/session/'
+      path: '/session'
+      fullPath: '/session/'
+      preLoaderRoute: typeof AuthenticatedSessionIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/session/$sessionId': {
+      id: '/_authenticated/session/$sessionId'
+      path: '/session/$sessionId'
+      fullPath: '/session/$sessionId'
+      preLoaderRoute: typeof AuthenticatedSessionSessionIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/settings/': {
       id: '/_authenticated/settings/'
       path: '/'
@@ -842,6 +908,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsNotificationsRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteRoute
     }
+    '/_authenticated/settings/projects': {
+      id: '/_authenticated/settings/projects'
+      path: '/projects'
+      fullPath: '/settings/projects'
+      preLoaderRoute: typeof AuthenticatedSettingsProjectsRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
     '/_authenticated/settings/providers': {
       id: '/_authenticated/settings/providers'
       path: '/providers'
@@ -861,6 +934,13 @@ declare module '@tanstack/react-router' {
       path: '/webhooks'
       fullPath: '/settings/webhooks'
       preLoaderRoute: typeof AuthenticatedSettingsWebhooksRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
+    '/_authenticated/settings/workspaces': {
+      id: '/_authenticated/settings/workspaces'
+      path: '/workspaces'
+      fullPath: '/settings/workspaces'
+      preLoaderRoute: typeof AuthenticatedSettingsWorkspacesRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteRoute
     }
     '/_authenticated/tasks/': {
@@ -937,9 +1017,11 @@ interface AuthenticatedSettingsRouteRouteChildren {
   AuthenticatedSettingsDisplayRoute: typeof AuthenticatedSettingsDisplayRoute
   AuthenticatedSettingsModelsRoute: typeof AuthenticatedSettingsModelsRoute
   AuthenticatedSettingsNotificationsRoute: typeof AuthenticatedSettingsNotificationsRoute
+  AuthenticatedSettingsProjectsRoute: typeof AuthenticatedSettingsProjectsRoute
   AuthenticatedSettingsProvidersRoute: typeof AuthenticatedSettingsProvidersRoute
   AuthenticatedSettingsSecurityRoute: typeof AuthenticatedSettingsSecurityRoute
   AuthenticatedSettingsWebhooksRoute: typeof AuthenticatedSettingsWebhooksRoute
+  AuthenticatedSettingsWorkspacesRoute: typeof AuthenticatedSettingsWorkspacesRoute
   AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
 }
 
@@ -953,9 +1035,11 @@ const AuthenticatedSettingsRouteRouteChildren: AuthenticatedSettingsRouteRouteCh
     AuthenticatedSettingsModelsRoute: AuthenticatedSettingsModelsRoute,
     AuthenticatedSettingsNotificationsRoute:
       AuthenticatedSettingsNotificationsRoute,
+    AuthenticatedSettingsProjectsRoute: AuthenticatedSettingsProjectsRoute,
     AuthenticatedSettingsProvidersRoute: AuthenticatedSettingsProvidersRoute,
     AuthenticatedSettingsSecurityRoute: AuthenticatedSettingsSecurityRoute,
     AuthenticatedSettingsWebhooksRoute: AuthenticatedSettingsWebhooksRoute,
+    AuthenticatedSettingsWorkspacesRoute: AuthenticatedSettingsWorkspacesRoute,
     AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
   }
 
@@ -969,6 +1053,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedErrorsErrorRoute: typeof AuthenticatedErrorsErrorRoute
   AuthenticatedProductsProductIdRoute: typeof AuthenticatedProductsProductIdRoute
+  AuthenticatedSessionSessionIdRoute: typeof AuthenticatedSessionSessionIdRoute
   AuthenticatedWorkspacesActivityRoute: typeof AuthenticatedWorkspacesActivityRoute
   AuthenticatedAppsIndexRoute: typeof AuthenticatedAppsIndexRoute
   AuthenticatedBillingIndexRoute: typeof AuthenticatedBillingIndexRoute
@@ -977,6 +1062,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedNotificationsIndexRoute: typeof AuthenticatedNotificationsIndexRoute
   AuthenticatedProductsIndexRoute: typeof AuthenticatedProductsIndexRoute
   AuthenticatedReactQueryIndexRoute: typeof AuthenticatedReactQueryIndexRoute
+  AuthenticatedSessionIndexRoute: typeof AuthenticatedSessionIndexRoute
   AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
   AuthenticatedWorkspacesIndexRoute: typeof AuthenticatedWorkspacesIndexRoute
@@ -989,6 +1075,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedErrorsErrorRoute: AuthenticatedErrorsErrorRoute,
   AuthenticatedProductsProductIdRoute: AuthenticatedProductsProductIdRoute,
+  AuthenticatedSessionSessionIdRoute: AuthenticatedSessionSessionIdRoute,
   AuthenticatedWorkspacesActivityRoute: AuthenticatedWorkspacesActivityRoute,
   AuthenticatedAppsIndexRoute: AuthenticatedAppsIndexRoute,
   AuthenticatedBillingIndexRoute: AuthenticatedBillingIndexRoute,
@@ -997,6 +1084,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedNotificationsIndexRoute: AuthenticatedNotificationsIndexRoute,
   AuthenticatedProductsIndexRoute: AuthenticatedProductsIndexRoute,
   AuthenticatedReactQueryIndexRoute: AuthenticatedReactQueryIndexRoute,
+  AuthenticatedSessionIndexRoute: AuthenticatedSessionIndexRoute,
   AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
   AuthenticatedWorkspacesIndexRoute: AuthenticatedWorkspacesIndexRoute,
