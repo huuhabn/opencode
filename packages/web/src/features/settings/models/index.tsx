@@ -89,13 +89,13 @@ export function ModelsSettings() {
   const defaultModelID = defaultModelData?.modelID || defaultModelData?.id
 
   return (
-    <div className='min-h-0 w-full flex-1 overflow-y-auto scroll-smooth pe-4 pb-12 space-y-6'>
-      <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
+    <div className='w-full space-y-6 pb-12'>
+      <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-border/50 pb-5'>
         <div>
-          <h2 className='text-lg font-semibold tracking-tight'>
+          <h2 className='text-xl font-bold tracking-tight'>
             {t('modelProvider.aiModelsCatalog', 'AI Models Catalog')}
           </h2>
-          <p className='text-sm text-muted-foreground'>
+          <p className='text-sm text-muted-foreground mt-0.5'>
             {t(
               'modelProvider.aiModelsCatalogDesc',
               'Browse and inspect all AI models discovered from your connected providers.'

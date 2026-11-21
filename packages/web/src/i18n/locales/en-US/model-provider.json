@@ -237,5 +237,19 @@
   "modelProvider.tabTts": "TTS",
   "modelProvider.enabled": "Enabled",
   "modelProvider.newBadge": "New",
-  "modelProvider.saveConfiguration": "Save Configuration"
+  "modelProvider.saveConfiguration": "Save Configuration",
+  "modelProvider.backToSettings": "Back to Settings",
+  "modelProvider.connectedProviders": "Connected Providers",
+  "modelProvider.popularProviders": "Popular Providers",
+  "modelProvider.popularProvidersDesc": "Quickly connect to popular foundation AI models and platforms.",
+  "modelProvider.addProvider": "Add Provider",
+  "modelProvider.addOtherProvider": "Add Other Provider",
+  "modelProvider.searchAllCatalogHint": "Search 50+ providers",
+  "modelProvider.allProvidersCatalog": "Explore All AI Providers",
+  "modelProvider.browseAllProvidersDesc": "Search and connect to any supported AI provider or local inference engine.",
+  "modelProvider.searchProvidersPlaceholder": "Search provider by name, ID or type...",
+  "modelProvider.searchInAllCatalog": "Search all providers in catalog",
+  "modelProvider.totalProviders": "{{count}} providers available",
+  "modelProvider.manage": "Manage",
+  "modelProvider.connect": "Connect"
 }

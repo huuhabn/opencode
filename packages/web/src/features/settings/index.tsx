@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Outlet } from '@tanstack/react-router'
+import { Outlet, useLocation } from '@tanstack/react-router'
 import {
   Monitor,
   Bell,
@@ -22,9 +22,19 @@ import { Search } from '@/components/search'
 import { ThemeControls } from '@/components/themes/theme-controls'
 import { NotificationCenter } from '@/features/notifications/components/notification-center'
 import { SidebarNav, type NavGroup } from './components/sidebar-nav'
+import { AiSettingsLayout } from './components/ai-settings-layout'
 
 export function Settings() {
   const { t } = useTranslation(['model-provider', 'common'])
+  const { pathname } = useLocation()
+
+  // Use dedicated AI Engine layout for Providers and Models with independent scroll panes
+  if (
+    pathname.startsWith('/settings/providers') ||
+    pathname.startsWith('/settings/models')
+  ) {
+    return <AiSettingsLayout />
+  }
 
   const sidebarNavGroups: NavGroup[] = useMemo(
     () => [

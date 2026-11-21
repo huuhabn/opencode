@@ -237,5 +237,19 @@
   "modelProvider.tabTts": "Giọng nói",
   "modelProvider.enabled": "Đã bật",
   "modelProvider.newBadge": "Mới",
-  "modelProvider.saveConfiguration": "Lưu Cấu hình"
+  "modelProvider.saveConfiguration": "Lưu Cấu hình",
+  "modelProvider.backToSettings": "Quay lại Cài đặt",
+  "modelProvider.connectedProviders": "Nhà cung cấp đã kết nối",
+  "modelProvider.popularProviders": "Nhà cung cấp phổ biến",
+  "modelProvider.popularProvidersDesc": "Kết nối nhanh chóng với các nhà cung cấp và mô hình nền tảng phổ biến.",
+  "modelProvider.addProvider": "Thêm nhà cung cấp",
+  "modelProvider.addOtherProvider": "Thêm nhà cung cấp khác",
+  "modelProvider.searchAllCatalogHint": "Tìm trong 50+ nhà cung cấp",
+  "modelProvider.allProvidersCatalog": "Khám phá tất cả nhà cung cấp AI",
+  "modelProvider.browseAllProvidersDesc": "Tìm kiếm và kết nối với bất kỳ nhà cung cấp AI hoặc công cụ suy luận cục bộ nào.",
+  "modelProvider.searchProvidersPlaceholder": "Tìm kiếm theo tên, ID hoặc loại nhà cung cấp...",
+  "modelProvider.searchInAllCatalog": "Tìm trong toàn bộ danh mục",
+  "modelProvider.totalProviders": "Có {{count}} nhà cung cấp khả dụng",
+  "modelProvider.manage": "Quản lý",
+  "modelProvider.connect": "Kết nối"
 }
