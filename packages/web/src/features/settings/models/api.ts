@@ -163,6 +163,71 @@ export function useModels() {
   })
 }
 
+function readJsonLocalStorage(key: string): unknown {
+  if (typeof localStorage === 'undefined') return null
+  try {
+    const raw = localStorage.getItem(key)
+    if (raw == null) return null
+    return JSON.parse(raw)
+  } catch {
+    return null
+  }
+}
+
+/** Resolve credential/integration id that owns this model.providerID. */
+export function matchConnectedProviderId(
+  providerID: string,
+  connectedProviderIds: Iterable<string>
+) {
+  const target = providerID.toLowerCase()
+  for (const id of connectedProviderIds) {
+    const connected = id.toLowerCase()
+    if (
+      connected === target ||
+      connected.includes(target) ||
+      target.includes(connected)
+    ) {
+      return id
+    }
+  }
+  return undefined
+}
+
+function isProviderToggleEnabled(providerId: string, connected: boolean) {
+  const saved = readJsonLocalStorage(`opencode_provider_enabled_${providerId}`)
+  if (typeof saved === 'boolean') return saved
+  return connected
+}
+
+function isModelToggleEnabled(providerId: string, modelId: string) {
+  const saved = readJsonLocalStorage(`opencode_provider_settings_${providerId}`)
+  if (!saved || typeof saved !== 'object') return true
+  const map = (saved as { enabledModels?: Record<string, boolean> }).enabledModels
+  if (!map || typeof map !== 'object') return true
+  if (Object.prototype.hasOwnProperty.call(map, modelId)) return Boolean(map[modelId])
+  return true
+}
+
+/**
+ * Models usable in the composer: from a connected provider that is enabled
+ * in /settings/providers, and with the per-model enable toggle on.
+ */
+export function filterEnabledConnectedModels(
+  models: ModelInfo[],
+  connectedProviderIds: Iterable<string>
+) {
+  const connected = connectedProviderIds instanceof Set
+    ? connectedProviderIds
+    : new Set(connectedProviderIds)
+
+  return models.filter((model) => {
+    const providerId = matchConnectedProviderId(model.providerID, connected)
+    if (!providerId) return false
+    if (!isProviderToggleEnabled(providerId, true)) return false
+    return isModelToggleEnabled(providerId, model.id)
+  })
+}
+
 export function useDefaultModel() {
   return useQuery({
     queryKey: modelQueryKeys.default,

@@ -30,6 +30,12 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -41,8 +47,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { useModels, useDefaultModel } from '@/features/settings/models/api'
+import {
+  useModels,
+  useDefaultModel,
+  filterEnabledConnectedModels,
+} from '@/features/settings/models/api'
 import { formatTokens } from '@/features/settings/models/format-tokens'
+import { useCredentials } from '@/features/settings/providers/api'
 import {
   useAgentsList,
   useSkillsList,
@@ -71,6 +82,27 @@ interface MentionSuggestionItem {
   description?: string
 }
 
+function clipboardImages(clipboard: DataTransfer | null) {
+  if (!clipboard) return [] as File[]
+
+  const fromFiles = Array.from(clipboard.files).filter((file) => file.type.startsWith('image/'))
+  if (fromFiles.length > 0) return fromFiles.map(namedClipboardImage)
+
+  const images: File[] = []
+  for (const item of Array.from(clipboard.items)) {
+    if (item.kind !== 'file' || !item.type.startsWith('image/')) continue
+    const file = item.getAsFile()
+    if (file) images.push(namedClipboardImage(file))
+  }
+  return images
+}
+
+function namedClipboardImage(file: File) {
+  if (file.name && file.name !== 'blob' && file.name !== 'image.png') return file
+  const ext = file.type.split('/')[1]?.split('+')[0] || 'png'
+  return new File([file], `clipboard-${Date.now()}.${ext}`, { type: file.type })
+}
+
 export function SessionComposer({
   session,
   onSend,
@@ -86,6 +118,7 @@ export function SessionComposer({
   const [selectedVariant, setSelectedVariant] = useState<string>('medium')
   const [modelSearch, setModelSearch] = useState('')
   const [attachedFiles, setAttachedFiles] = useState<File[]>([])
+  const [previewFileIndex, setPreviewFileIndex] = useState<number | null>(null)
   const [isListening, setIsListening] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
@@ -100,10 +133,24 @@ export function SessionComposer({
   const recognitionRef = useRef<any>(null)
   const suggestionListRef = useRef<HTMLDivElement>(null)
 
-  const { data: models = [] } = useModels()
+  const { data: allModels = [] } = useModels()
   const { data: defaultModel } = useDefaultModel()
+  const { data: credentials = [] } = useCredentials()
   const { data: agents = [] } = useAgentsList()
   const { data: skills = [] } = useSkillsList()
+
+  const connectedProviderIds = useMemo(() => {
+    const ids = new Set<string>()
+    for (const cred of credentials) {
+      if (cred.integrationID) ids.add(cred.integrationID)
+    }
+    return ids
+  }, [credentials])
+
+  const models = useMemo(
+    () => filterEnabledConnectedModels(allModels, connectedProviderIds),
+    [allModels, connectedProviderIds]
+  )
 
   const sessionModelKey = !session?.model
     ? ''
@@ -116,21 +163,23 @@ export function SessionComposer({
     if (!sessionModelKey || !session?.model) return
     const modelRef = typeof session.model === 'string' ? null : session.model
     const modelId = typeof session.model === 'string' ? session.model : modelRef?.id
-    if (modelId) setSelectedModelId(modelId)
+    if (modelId && models.some((m) => m.id === modelId)) setSelectedModelId(modelId)
     if (modelRef?.variant) setSelectedVariant(modelRef.variant)
-  }, [sessionModelKey, session])
+  }, [sessionModelKey, session, models])
 
-  // Initialize from localStorage / default only when nothing is selected yet.
+  // Prefer saved/default when still in the enabled connected set; otherwise first available.
   useEffect(() => {
     setSelectedModelId((prev) => {
-      if (prev) return prev
+      if (prev && models.some((m) => m.id === prev)) return prev
       if (typeof localStorage !== 'undefined') {
         const saved = localStorage.getItem(STORAGE_MODEL_KEY)
         if (saved && models.some((m) => m.id === saved)) return saved
       }
-      if (defaultModel?.id) return defaultModel.id
+      if (defaultModel?.id && models.some((m) => m.id === defaultModel.id)) {
+        return defaultModel.id
+      }
       if (models.length > 0) return models[0].id
-      return prev
+      return ''
     })
   }, [defaultModel, models])
 
@@ -391,14 +440,40 @@ export function SessionComposer({
     setIsDragging(false)
   }
 
+  const attachFiles = (files: File[]) => {
+    if (files.length === 0) return
+    setAttachedFiles((prev) => [...prev, ...files])
+    toast.success(`${files.length} file(s) attached`)
+  }
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const files = Array.from(e.dataTransfer.files)
-      setAttachedFiles((prev) => [...prev, ...files])
-      toast.success(`${files.length} file(s) attached`)
+      attachFiles(Array.from(e.dataTransfer.files))
     }
+  }
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const images = clipboardImages(e.clipboardData)
+    if (images.length === 0) return
+
+    // Keep binary image paste out of the textarea; re-insert any plain text ourselves.
+    e.preventDefault()
+    attachFiles(images)
+
+    const text = e.clipboardData.getData('text/plain')
+    if (!text) return
+    const textarea = e.currentTarget
+    const start = textarea.selectionStart ?? prompt.length
+    const end = textarea.selectionEnd ?? prompt.length
+    const next = prompt.slice(0, start) + text + prompt.slice(end)
+    setPrompt(next)
+    setTimeout(() => {
+      const pos = start + text.length
+      textarea.setSelectionRange(pos, pos)
+      setCaretPosition(pos)
+    }, 0)
   }
 
   // Voice dictation toggle
@@ -483,15 +558,35 @@ export function SessionComposer({
   // Handle file uploads
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const newFiles = Array.from(e.target.files)
-      setAttachedFiles((prev) => [...prev, ...newFiles])
-      toast.success(`${newFiles.length} file(s) attached`)
+      attachFiles(Array.from(e.target.files))
     }
   }
 
   const removeFile = (idx: number) => {
     setAttachedFiles((prev) => prev.filter((_, i) => i !== idx))
+    setPreviewFileIndex((current) => {
+      if (current == null) return null
+      if (current === idx) return null
+      if (current > idx) return current - 1
+      return current
+    })
   }
+
+  const attachmentPreviews = useMemo(
+    () =>
+      attachedFiles.map((file) =>
+        file.type.startsWith('image/') ? URL.createObjectURL(file) : null
+      ),
+    [attachedFiles]
+  )
+
+  useEffect(() => {
+    return () => {
+      for (const url of attachmentPreviews) {
+        if (url) URL.revokeObjectURL(url)
+      }
+    }
+  }, [attachmentPreviews])
 
   // Quick insertion helpers for @ and /
   const insertMention = (char: string) => {
@@ -619,30 +714,81 @@ export function SessionComposer({
             : 'border-border/80 hover:border-border'
         }`}
       >
-        {/* Attached files pills */}
+        {/* Attached files — image thumbnails + file pills */}
         {attachedFiles.length > 0 && (
-          <div className='flex flex-wrap gap-1.5 px-4 pt-2.5'>
-            {attachedFiles.map((file, idx) => (
-              <div
-                key={idx}
-                className='flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1 text-xs text-foreground font-mono shadow-2xs border border-border/50'
-              >
-                <FileCode className='h-3.5 w-3.5 text-primary' />
-                <span className='truncate max-w-[160px] font-medium'>{file.name}</span>
-                <span className='text-[10px] text-muted-foreground'>
-                  ({(file.size / 1024).toFixed(1)} KB)
-                </span>
-                <button
-                  type='button'
-                  onClick={() => removeFile(idx)}
-                  className='text-muted-foreground hover:text-foreground ml-1 p-0.5 rounded-full hover:bg-muted-foreground/20'
+          <div className='flex flex-wrap gap-2 px-4 pt-2.5'>
+            {attachedFiles.map((file, idx) => {
+              const previewUrl = attachmentPreviews[idx]
+              if (previewUrl) {
+                return (
+                  <div key={`${file.name}-${idx}`} className='relative group'>
+                    <button
+                      type='button'
+                      onClick={() => setPreviewFileIndex(idx)}
+                      className='block h-14 w-14 overflow-hidden rounded-lg border border-border/60 bg-muted shadow-2xs transition-opacity hover:opacity-90'
+                      title={t('session.previewAttachment', 'Preview {{name}}', { name: file.name })}
+                    >
+                      <img
+                        src={previewUrl}
+                        alt={file.name}
+                        className='h-full w-full object-cover'
+                      />
+                    </button>
+                    <button
+                      type='button'
+                      onClick={() => removeFile(idx)}
+                      className='absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full border border-border/60 bg-background text-muted-foreground shadow-xs hover:text-foreground'
+                      title={t('common.remove', 'Remove')}
+                    >
+                      <X className='h-3 w-3' />
+                    </button>
+                  </div>
+                )
+              }
+
+              return (
+                <div
+                  key={`${file.name}-${idx}`}
+                  className='flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1 text-xs text-foreground font-mono shadow-2xs border border-border/50'
                 >
-                  <X className='h-3 w-3' />
-                </button>
-              </div>
-            ))}
+                  <FileCode className='h-3.5 w-3.5 text-primary' />
+                  <span className='truncate max-w-[160px] font-medium'>{file.name}</span>
+                  <button
+                    type='button'
+                    onClick={() => removeFile(idx)}
+                    className='text-muted-foreground hover:text-foreground ml-1 p-0.5 rounded-full hover:bg-muted-foreground/20'
+                  >
+                    <X className='h-3 w-3' />
+                  </button>
+                </div>
+              )
+            })}
           </div>
         )}
+
+        <Dialog
+          open={previewFileIndex != null}
+          onOpenChange={(open) => {
+            if (!open) setPreviewFileIndex(null)
+          }}
+        >
+          <DialogContent className='max-w-3xl p-0 overflow-hidden gap-0'>
+            <DialogHeader className='px-4 py-3 border-b border-border/50'>
+              <DialogTitle className='text-sm font-medium truncate pr-6'>
+                {previewFileIndex != null ? attachedFiles[previewFileIndex]?.name : ''}
+              </DialogTitle>
+            </DialogHeader>
+            {previewFileIndex != null && attachmentPreviews[previewFileIndex] && (
+              <div className='flex max-h-[80vh] items-center justify-center bg-muted/30 p-3'>
+                <img
+                  src={attachmentPreviews[previewFileIndex]!}
+                  alt={attachedFiles[previewFileIndex]?.name}
+                  className='max-h-[75vh] max-w-full rounded-md object-contain'
+                />
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* Text Input Area */}
         <div className='px-4 pt-3 pb-2'>
@@ -655,6 +801,7 @@ export function SessionComposer({
             onClick={handleSelectOrClick}
             onKeyUp={handleSelectOrClick}
             onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
             disabled={disabled || isStreaming}
             placeholder={t(
               'session.composerPlaceholderNew',
@@ -786,7 +933,12 @@ export function SessionComposer({
                 <div className='max-h-64 overflow-y-auto p-1'>
                   {Object.keys(groupedModels).length === 0 ? (
                     <div className='p-4 text-center text-xs text-muted-foreground'>
-                      No models matching &apos;{modelSearch}&apos;
+                      {modelSearch.trim()
+                        ? `No models matching '${modelSearch}'`
+                        : t(
+                            'session.noEnabledModels',
+                            'No enabled models from connected providers. Connect one in Settings → Providers.'
+                          )}
                     </div>
                   ) : (
                     Object.entries(groupedModels).map(([provider, providerModels]) => (
